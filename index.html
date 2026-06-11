@@ -1267,4 +1267,52 @@ function fetchBD24H(){
 
 
 // ===== INIT =====
-ALL_MATCHES=MATCHES.filter(function(m){return 
+ALL_MATCHES=MATCHES.filter(function(m){return !isFake(m);});
+currentDate='12/06';currentLeague='World Cup 2026';
+buildFeaturedCards();
+setTimeout(function(){fetchBD24H();},100);
+addDragScroll('liveCards');
+addDragScroll('featuredCards');
+addDragScroll('dateNav');
+buildDateNav();
+renderLich();
+renderGroups();
+setInterval(function(){fetchBD24H();},30000);
+
+
+// ===== BANNER BUTTON COLOR FLASH =====
+(function applyBannerBtns(){
+  var b1=document.querySelector('.banner-btn1');
+  var b2=document.querySelector('.banner-btn2');
+  if(!b1||!b2){return setTimeout(applyBannerBtns,50);}
+  function setBtn(el,bg,col,bc){
+    el.setAttribute('style',
+      'background:'+bg+' !important;color:'+col+' !important;border-color:'+bc+' !important;'+
+      'padding:13px 36px;border-radius:8px;border-width:3px;border-style:solid;'+
+      'display:inline-block;text-decoration:none;font-family:Oswald,sans-serif;'+
+      'font-size:17px;font-weight:900;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;');
+  }
+  var i1=0,i2=0;
+  var c1=[['#CC0000','#FFD700','#FFD700'],['#FF6B00','#fff','#fff']];
+  var c2=[['#1844C8','#fff','#fff'],['#F59E0B','#000','#FFD700']];
+  setBtn(b1,c1[0][0],c1[0][1],c1[0][2]);
+  setBtn(b2,c2[0][0],c2[0][1],c2[0][2]);
+  setInterval(function(){i1=(i1+1)%2;setBtn(b1,c1[i1][0],c1[i1][1],c1[i1][2]);},700);
+  setTimeout(function(){setInterval(function(){i2=(i2+1)%2;setBtn(b2,c2[i2][0],c2[i2][1],c2[i2][2]);},700);},350);
+})();
+// ===== GA4 =====
+document.addEventListener('click', function(e){
+  var el = e.target.closest('a[data-ga]');
+  if(!el) el = e.target.closest('a[href*="socolive"]');
+  if(el && typeof gtag === 'function'){
+    var gaName = el.getAttribute('data-ga') || 'btn_socolive_khac';
+    gtag('event', gaName, {
+      'event_category': 'Socolive_Click',
+      'event_label': gaName,
+      'value': 1
+    });
+  }
+});
+</script>
+</body>
+</html>
