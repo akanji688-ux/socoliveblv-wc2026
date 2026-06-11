@@ -1382,7 +1382,6 @@ document.addEventListener('click', function(e){
   if(el){
     var origCards=Array.from(el.children);
     var n=origCards.length,CARD_W=216,COPIES=8;
-    // Clone COPIES sets before and after
     for(var ci=0;ci<COPIES;ci++){
       var f=document.createDocumentFragment();
       origCards.forEach(function(c){f.appendChild(c.cloneNode(true));});
@@ -1397,11 +1396,21 @@ document.addEventListener('click', function(e){
       if(el.scrollLeft<2*setW) el.scrollLeft+=setW;
       if(el.scrollLeft>(COPIES*2-2)*setW) el.scrollLeft-=setW;
     }
+    function animateTo(target,dur,cb){
+      var from=el.scrollLeft,t0=performance.now();
+      function step(now){
+        var p=Math.min((now-t0)/dur,1);
+        p=p<0.5?2*p*p:-1+(4-2*p)*p; // ease in-out
+        el.scrollLeft=from+(target-from)*p;
+        if(p<1){requestAnimationFrame(step);}else{el.scrollLeft=target;if(cb)cb();}
+      }
+      requestAnimationFrame(step);
+    }
     function nextCard(){
       if(paused||animating)return;
       animating=true;
-      el.scrollTo({left:el.scrollLeft+CARD_W,behavior:'smooth'});
-      setTimeout(function(){clamp();animating=false;},480);
+      var target=el.scrollLeft+CARD_W;
+      animateTo(target,420,function(){clamp();animating=false;});
     }
     setTimeout(function(){
       el.scrollLeft=COPIES*setW;
@@ -1410,9 +1419,9 @@ document.addEventListener('click', function(e){
     el.addEventListener('mouseenter',function(){paused=true;});
     el.addEventListener('mouseleave',function(){paused=false;});
     el.addEventListener('touchstart',function(){paused=true;},{passive:true});
-    el.addEventListener('touchend',function(){setTimeout(function(){clamp();paused=false;},450);},{passive:true});
+    el.addEventListener('touchend',function(){setTimeout(function(){clamp();paused=false;},100);},{passive:true});
     el.addEventListener('mousedown',function(e){isDown=true;paused=true;startX=e.pageX;startScroll=el.scrollLeft;el.style.cursor='grabbing';e.preventDefault();});
-    document.addEventListener('mouseup',function(){if(!isDown)return;isDown=false;setTimeout(function(){clamp();paused=false;},450);el.style.cursor='grab';});
+    document.addEventListener('mouseup',function(){if(!isDown)return;isDown=false;clamp();paused=false;el.style.cursor='grab';});
     document.addEventListener('mousemove',function(e){if(!isDown)return;el.scrollLeft=startScroll-(e.pageX-startX);},{passive:true});
   }
 })();
