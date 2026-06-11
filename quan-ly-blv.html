@@ -205,16 +205,22 @@ function saveAll(){
   .catch(function(e){showStatus('err','Lỗi: '+e.message);});
 }
 
-fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-  headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
-})
-.then(function(r){return r.json();})
-.then(function(d){
-  fileSha=d.sha||'';
-  blvData=JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))).blvs||[];
-  renderCards();
-})
-.catch(function(){blvData=[];renderCards();showStatus('err','Không tải được dữ liệu.');});
+(function(){
+  var h={'Accept':'application/vnd.github.v3+json'};
+  if(TOKEN) h['Authorization']='token '+TOKEN;
+  fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{headers:h})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d.content) throw new Error(d.message||'No content');
+    fileSha=d.sha||'';
+    var bytes=atob(d.content.replace(/\n/g,''));
+    var arr=new Uint8Array(bytes.length);
+    for(var j=0;j<bytes.length;j++) arr[j]=bytes.charCodeAt(j);
+    blvData=JSON.parse(new TextDecoder().decode(arr)).blvs||[];
+    renderCards();
+  })
+  .catch(function(e){blvData=[];renderCards();showStatus('err','Không tải được dữ liệu: '+e.message);});
+})();
 </script>
 </body>
 </html>
