@@ -1353,6 +1353,7 @@ document.addEventListener('click', function(e){
 
 // ===== BLV CARDS =====
 (function(){
+  function renderBLV(){
   var blvs = [
     {name:'BLV 7Up',         img:'image/BLV/blv7up.png',        nhom:'#', tele:'#', zalo:'#'},
     {name:'BLV Coca',        img:'image/BLV/blvcoca.webp',       nhom:'#', tele:'#', zalo:'#'},
@@ -1369,7 +1370,7 @@ document.addEventListener('click', function(e){
     html += '</div>';
     html += '<div style="padding:10px 12px 12px;">';
     html += '<div style="font-size:10px;color:#00A651;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Bình luận viên</div>';
-    html += '<div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:10px;">'+b.name+'</div>';
+    html += '<div style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:10px;">'+b.name+'</div>';
     html += '<div style="display:flex;gap:6px;">';
     html += '<a href="'+b.nhom+'" target="_blank" data-ga="btn_blv_nhom" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#1844C8;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.3px;">👥 Nhóm</a>';
     html += '<a href="'+b.tele+'" target="_blank" data-ga="btn_blv_tele" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0088cc;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.3px;">✈️ Tele</a>';
@@ -1377,7 +1378,13 @@ document.addEventListener('click', function(e){
     html += '</div>';
     html += '</div></div>';
   });
-  el.innerHTML = html;
+    el.innerHTML = html;
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', renderBLV);
+  } else {
+    renderBLV();
+  }
 })();
 
 (function(){
