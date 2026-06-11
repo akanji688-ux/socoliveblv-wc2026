@@ -1003,20 +1003,32 @@ function buildFeaturedCards(){
   var grid=document.getElementById('featuredCards');
   if(!grid) return;
 
-  // Only use matches from today/tomorrow (filter stale data)
   var todayD=new Date();
   var todayS=String(todayD.getDate()).padStart(2,'0')+'/'+String(todayD.getMonth()+1).padStart(2,'0');
   var tmrD=new Date(todayD.getTime()+86400000);
   var tmrS=String(tmrD.getDate()).padStart(2,'0')+'/'+String(tmrD.getMonth()+1).padStart(2,'0');
   function isRecent(m){return !m.d||(m.d===todayS||m.d===tmrS);}
   function isWC(m){var id=String(m.id);return !id.startsWith('bd_')&&!id.startsWith('e_');}
-  var live   = ALL_MATCHES.filter(function(m){return m.status==='live'&&isRecent(m)&&isWC(m);});
-  var done   = ALL_MATCHES.filter(function(m){return m.status==='done'&&isRecent(m)&&isWC(m);})
-               .sort(function(a,b){return b.t.localeCompare(a.t);});
-  var upcoming= ALL_MATCHES.filter(function(m){return m.status==='upcoming'&&isRecent(m)&&isWC(m);});
-  var wc     = MATCHES.filter(function(m){return !isFake(m);});
 
-  // Pick 3 best cards - no duplicates
+  // For each WC static match overlay real ESPN status/score
+  function enrichWC(m){
+    var t1=parseTeam(m.d1),t2=parseTeam(m.d2);
+    var espn=getESPNData(t1.name,t2.name);
+    if(!espn)return m;
+    return Object.assign({},m,{status:espn.status,score:espn.score,clock:espn.clock});
+  }
+
+  // LIVE first, then upcoming — NEVER done
+  var live    = ALL_MATCHES.filter(function(m){return m.status==='live'&&isRecent(m)&&isWC(m);});
+  var upcoming= ALL_MATCHES.filter(function(m){return m.status==='upcoming'&&isRecent(m)&&isWC(m);});
+  // WC static matches enriched, exclude done
+  var wc = MATCHES.filter(function(m){
+    if(isFake(m))return false;
+    var em=enrichWC(m);
+    return em.status!=='done';
+  }).map(enrichWC);
+
+  // Pick 4 cards — no done, no duplicates
   var used={};
   function pick(arr){
     for(var i=0;i<arr.length;i++){
@@ -1024,9 +1036,10 @@ function buildFeaturedCards(){
     }return null;
   }
 
-  var c1=pick(live)||pick(done)||pick(wc);
+  var c1=pick(live)||pick(upcoming)||pick(wc);
   var c2=pick(live)||pick(upcoming)||pick(wc);
-  var c3=pick(done)||pick(live)||pick(wc);
+  var c3=pick(live)||pick(upcoming)||pick(wc);
+  var c4=pick(live)||pick(upcoming)||pick(wc);
 
   function rc(m){
     if(!m)return '<div class="fc-card is-soon" style="opacity:.3;min-height:200px;display:flex;align-items:center;justify-content:center;"><span style="color:#555;">Không có trận</span></div>';
@@ -1080,7 +1093,7 @@ function buildFeaturedCards(){
         +'<div style="font-size:12px;font-weight:600;color:var(--wc-green);">'+m.d+' · '+m.t+'</div>'
       +'</div></div></div>';
   }
-  grid.innerHTML=rc(c1)+rc(c2)+rc(c3);
+  grid.innerHTML=rc(c1)+rc(c2)+rc(c3)+rc(c4);
 }
 
 // ===== GROUP CAROUSEL =====
