@@ -1003,7 +1003,7 @@ function buildFeaturedCards(){
       +'</div></div></div>';
   }
   grid.innerHTML=rc(c1)+rc(c2)+rc(c3)+rc(c4)+rc(c5)+rc(c6);
-  setTimeout(initFeaturedScroll,100);
+  setTimeout(function(){if(typeof initFeaturedScroll==='function')initFeaturedScroll();},100);
 }
 
 // ===== GROUP CAROUSEL =====
