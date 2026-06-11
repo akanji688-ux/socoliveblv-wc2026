@@ -1443,7 +1443,7 @@ function fetchBD24H(){
       .then(function(r){return r.json();})
       .then(function(d){
         var h=JSON.stringify(d.blvs||[]);
-        if(h!==_blvHash){_blvHash=h;renderBLV(d.blvs||[]);}
+        if(h!==_blvHash){_blvHash=h;renderBLV((d.blvs||[]).filter(function(b){return !b.hidden;}));}
       })
       .catch(function(){});
   }

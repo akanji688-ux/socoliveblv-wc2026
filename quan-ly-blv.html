@@ -62,6 +62,11 @@ var TOKEN=localStorage.getItem('gh_tok')||'';
 var blvData=[];
 var dragSrcIdx=-1;
 
+function updateCardStyle(i,hidden){
+  var card=document.getElementById('card-'+i);
+  if(card) card.style.opacity=hidden?'0.45':'1';
+}
+
 function initDrag(){
   var list=document.getElementById('cardList');
   list.querySelectorAll('.card').forEach(function(card){
@@ -156,6 +161,8 @@ function renderCards(){
     html+='<div class="card-right">';
     html+='<div class="card-top"><span class="card-name">'+esc(b.name)+'</span>';
     html+='<div style="display:flex;gap:5px;">';
+    html+='<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;color:#aaa;user-select:none;" title="Ẩn BLV này">';
+    html+='<input type="checkbox"'+(b.hidden?' checked':'')+' onchange="blvData['+i+'].hidden=this.checked;updateCardStyle('+i+',this.checked)" style="accent-color:#CC0000;width:13px;height:13px;cursor:pointer;"/> Ẩn</label>';
     html+='<button class="btn-save-card" id="savebtn-'+i+'" onclick="saveOne('+i+')">💾 Lưu</button>';
     html+='<button class="btn-del" onclick="removeBLV('+i+')">✕</button>';
     html+='</div></div>';
@@ -169,6 +176,7 @@ function renderCards(){
   });
   document.getElementById('cardList').innerHTML=html;
   initDrag();
+  blvData.forEach(function(b,i){updateCardStyle(i,!!b.hidden);});
 }
 
 function previewImg(i,input){
