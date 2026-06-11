@@ -1418,18 +1418,13 @@ document.addEventListener('click', function(e){
   }
   var _blvHash='';
   function fetchBLV(){
-    fetch('https://raw.githubusercontent.com/akanji688-ux/socoliveblv-wc2026/main/blv-data.json?v='+Date.now())
+    fetch('blv-data.json?v='+Date.now())
       .then(function(r){return r.json();})
       .then(function(d){
         var h=JSON.stringify(d.blvs||[]);
         if(h!==_blvHash){_blvHash=h;renderBLV(d.blvs||[]);}
       })
-      .catch(function(){
-        fetch('blv-data.json?v='+Date.now()).then(function(r){return r.json();}).then(function(d){
-          var h=JSON.stringify(d.blvs||[]);
-          if(h!==_blvHash){_blvHash=h;renderBLV(d.blvs||[]);}
-        }).catch(function(){});
-      });
+      .catch(function(){});
   }
   fetchBLV();
   setInterval(fetchBLV,30000);
