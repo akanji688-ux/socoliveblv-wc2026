@@ -76,7 +76,11 @@ function renderCards(){
     html+='<input type="file" id="file-'+i+'" accept="image/*" onchange="previewImg('+i+',this)"/>';
     html+='</div>';
     html+='<div class="card-right">';
-    html+='<div class="card-top"><span class="card-name">'+esc(b.name)+'</span><button class="btn-del" onclick="removeBLV('+i+')">✕</button></div>';
+    html+='<div class="card-top"><span class="card-name">'+esc(b.name)+'</span>';
+    html+='<div style="display:flex;gap:5px;">';
+    html+='<button class="btn-save-card" id="savebtn-'+i+'" onclick="saveOne('+i+')">💾 Lưu</button>';
+    html+='<button class="btn-del" onclick="removeBLV('+i+')">✕</button>';
+    html+='</div></div>';
     html+='<div class="fields">';
     html+='<div class="field half"><label>Tên BLV</label><input value="'+esc(b.name)+'" oninput="upd('+i+',\'name\',this.value)"/></div>';
     html+='<div class="field half" style="grid-column:span 2"><label>Link ảnh</label><input value="'+esc(b.img)+'" oninput="upd('+i+',\'img\',this.value)"/></div>';
@@ -121,6 +125,36 @@ function uploadImage(i,file,dataUrl){
     else showStatus('err','Lỗi: '+(d.message||'unknown'));
   })
   .catch(function(e){showStatus('err','Lỗi: '+e.message);});
+}
+
+function saveOne(i){
+  var btn=document.getElementById('savebtn-'+i);
+  if(btn){btn.disabled=true;btn.textContent='Đang lưu...';}
+  showStatus('ok','Đang lưu BLV '+blvData[i].name+'...');
+  fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
+    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json','Cache-Control':'no-cache'}
+  })
+  .then(function(r){return r.json();})
+  .then(function(latest){
+    fileSha=latest.sha||fileSha;
+    // Merge: update only this card in the latest data
+    var latestBlvs=JSON.parse(decodeURIComponent(escape(atob(latest.content.replace(/\n/g,'')))));
+    latestBlvs.blvs[i]=blvData[i];
+    blvData=latestBlvs.blvs;
+    var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
+    return fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
+      method:'PUT',
+      headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify({message:'Admin: cập nhật '+blvData[i].name,content:b64,sha:fileSha})
+    });
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}
+    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu '+blvData[i].name+'! Site cập nhật sau ~1 phút.');}
+    else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
+  })
+  .catch(function(e){if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}showStatus('err','Lỗi: '+e.message);});
 }
 
 function saveAll(){
