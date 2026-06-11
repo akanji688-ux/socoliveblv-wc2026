@@ -715,7 +715,7 @@ function parseESPNEvent(ev,lg){
     var away=comps.filter(function(c){return c.homeAway==='away';})[0]||comps[1];
     if(!home||!away)return null;
     var st=comp.status.type;
-    var status=st.completed?'done':(st.name==='STATUS_IN_PROGRESS'?'live':'upcoming');
+    var status=(st.state==='post'||st.completed)?'done':(st.state==='in'?'live':'upcoming');
     var score=(status!=='upcoming')?(home.score||'0')+' - '+(away.score||'0'):null;
     var dt=new Date(ev.date),vnMs=dt.getTime()+7*3600000,vnD=new Date(vnMs);
     var dd=String(vnD.getUTCDate()).padStart(2,'0'),mm=String(vnD.getUTCMonth()+1).padStart(2,'0');
