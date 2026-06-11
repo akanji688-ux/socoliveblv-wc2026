@@ -1446,40 +1446,56 @@ document.addEventListener('click', function(e){
 })();
 
 (function(){
-  function initCarousel(){
-    var grid = document.getElementById('featuredCards');
-    if(!grid || grid.children.length === 0) return;
-    var origCards = Array.from(grid.children);
-    origCards.forEach(function(c){ grid.appendChild(c.cloneNode(true)); });
-    var cardWidth = origCards[0].offsetWidth + 14;
-    var currentIndex = 0;
-    var total = origCards.length;
-    var paused = false;
-    grid.scrollLeft = 0;
-    grid.addEventListener('mouseenter', function(){ paused = true; });
-    grid.addEventListener('mouseleave', function(){ paused = false; });
-    grid.addEventListener('touchstart', function(){ paused = true; }, {passive:true});
-    grid.addEventListener('touchend', function(){ setTimeout(function(){ paused = false; }, 3000); }, {passive:true});
-    setInterval(function(){
-      if(paused) return;
-      currentIndex++;
-      grid.style.scrollBehavior = 'smooth';
-      grid.scrollLeft = currentIndex * cardWidth;
-      if(currentIndex >= total){
-        setTimeout(function(){
-          grid.style.scrollBehavior = 'auto';
-          grid.scrollLeft = 0;
-          currentIndex = 0;
-        }, 600);
+  function initFeatured(){
+    var el=document.getElementById('featuredCards');
+    if(!el||el.children.length===0)return;
+    var origCards=Array.from(el.children),n=origCards.length,CARD_W=314,COPIES=6;
+    if(n===0)return;
+    for(var ci=0;ci<COPIES;ci++){
+      var fr=document.createDocumentFragment();
+      origCards.forEach(function(c){fr.appendChild(c.cloneNode(true));});
+      el.insertBefore(fr,el.firstChild);
+    }
+    for(var ci=0;ci<COPIES;ci++){
+      origCards.forEach(function(c){el.appendChild(c.cloneNode(true));});
+    }
+    var setW=n*CARD_W,paused=false,isDown=false,startX,startScroll,animating=false;
+    function clamp(){
+      if(el.scrollLeft<2*setW)el.scrollLeft+=setW;
+      if(el.scrollLeft>(COPIES*2-2)*setW)el.scrollLeft-=setW;
+    }
+    function animateTo(target,dur,cb){
+      var from=el.scrollLeft,t0=performance.now();
+      function step(now){
+        var p=Math.min((now-t0)/dur,1);
+        p=p<0.5?2*p*p:-1+(4-2*p)*p;
+        el.scrollLeft=from+(target-from)*p;
+        if(p<1){requestAnimationFrame(step);}else{el.scrollLeft=target;if(cb)cb();}
       }
-    }, 4000);
+      requestAnimationFrame(step);
+    }
+    function nextCard(){
+      if(paused||animating)return;
+      animating=true;
+      animateTo(el.scrollLeft+CARD_W,420,function(){clamp();animating=false;});
+    }
+    el.scrollLeft=COPIES*setW;
+    setInterval(nextCard,3000);
+    el.addEventListener('mouseenter',function(){paused=true;});
+    el.addEventListener('mouseleave',function(){paused=false;});
+    el.addEventListener('mousedown',function(e){isDown=true;startX=e.pageX;startScroll=el.scrollLeft;el.style.cursor='grabbing';paused=true;});
+    document.addEventListener('mouseup',function(){if(!isDown)return;isDown=false;el.style.cursor='';clamp();setTimeout(function(){paused=false;},800);});
+    document.addEventListener('mousemove',function(e){if(!isDown)return;e.preventDefault();el.scrollLeft=startScroll-(e.pageX-startX);});
+    el.addEventListener('touchstart',function(e){startX=e.touches[0].pageX;startScroll=el.scrollLeft;paused=true;},{passive:true});
+    el.addEventListener('touchmove',function(e){el.scrollLeft=startScroll-(e.touches[0].pageX-startX);},{passive:true});
+    el.addEventListener('touchend',function(){clamp();setTimeout(function(){paused=false;},800);},{passive:true});
   }
-  var tries = 0;
-  var check = setInterval(function(){
-    var grid = document.getElementById('featuredCards');
-    if(grid && grid.children.length > 0){ clearInterval(check); setTimeout(initCarousel, 300); }
-    if(++tries > 50) clearInterval(check);
-  }, 200);
+  var tries=0;
+  var check=setInterval(function(){
+    var grid=document.getElementById('featuredCards');
+    if(grid&&grid.children.length>0){clearInterval(check);setTimeout(initFeatured,300);}
+    if(++tries>50)clearInterval(check);
+  },200);
 })();
 </script></body>
 </html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
