@@ -1377,13 +1377,28 @@ document.addEventListener('click', function(e){
     .then(function(r){return r.json();})
     .then(function(d){renderBLV(d.blvs||[]);})
     .catch(function(){renderBLV([]);});
-  // Drag to scroll
+  // Drag + auto-scroll
   var el=document.getElementById('blvCards');
   if(el){
-    var isDown=false,startX,scrollLeft;
-    el.addEventListener('mousedown',function(e){isDown=true;startX=e.pageX-el.offsetLeft;scrollLeft=el.scrollLeft;el.style.cursor='grabbing';});
-    el.addEventListener('mouseleave',function(){isDown=false;el.style.cursor='grab';});
-    el.addEventListener('mouseup',function(){isDown=false;el.style.cursor='grab';});
+    var isDown=false,startX,scrollLeft,autoTimer,paused=false;
+    var CARD_W=216; // card width + gap
+    var idx=0;
+    function scrollToCard(i){
+      el.scrollTo({left:i*CARD_W,behavior:'smooth'});
+    }
+    function nextCard(){
+      if(paused)return;
+      var maxIdx=Math.max(0,Math.round((el.scrollWidth-el.clientWidth)/CARD_W));
+      idx=(idx>=maxIdx)?0:idx+1;
+      scrollToCard(idx);
+    }
+    autoTimer=setInterval(nextCard,3000);
+    el.addEventListener('mouseenter',function(){paused=true;});
+    el.addEventListener('mouseleave',function(){paused=false;el.style.cursor='grab';});
+    el.addEventListener('touchstart',function(){paused=true;clearInterval(autoTimer);},{passive:true});
+    el.addEventListener('touchend',function(){paused=false;autoTimer=setInterval(nextCard,3000);},{passive:true});
+    el.addEventListener('mousedown',function(e){isDown=true;paused=true;startX=e.pageX-el.offsetLeft;scrollLeft=el.scrollLeft;el.style.cursor='grabbing';clearInterval(autoTimer);});
+    el.addEventListener('mouseup',function(){isDown=false;paused=false;el.style.cursor='grab';autoTimer=setInterval(nextCard,3000);});
     el.addEventListener('mousemove',function(e){if(!isDown)return;e.preventDefault();var x=e.pageX-el.offsetLeft;el.scrollLeft=scrollLeft-(x-startX)*1.5;});
   }
 })();
