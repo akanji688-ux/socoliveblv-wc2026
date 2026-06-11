@@ -522,7 +522,7 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
     <h2 style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin:0;">BÌNH LUẬN VIÊN</h2>
     <span style="font-size:10px;font-weight:800;background:#CC0000;color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:1px;">SOCOLIVE BLV</span>
   </div>
-  <div id="blvCards" style="display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;"></div>
+  <div id="blvCards" style="display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;flex-wrap:nowrap;width:100%;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;"></div>
 </div>
 
 <!-- TABS -->
@@ -1377,6 +1377,15 @@ document.addEventListener('click', function(e){
     .then(function(r){return r.json();})
     .then(function(d){renderBLV(d.blvs||[]);})
     .catch(function(){renderBLV([]);});
+  // Drag to scroll
+  var el=document.getElementById('blvCards');
+  if(el){
+    var isDown=false,startX,scrollLeft;
+    el.addEventListener('mousedown',function(e){isDown=true;startX=e.pageX-el.offsetLeft;scrollLeft=el.scrollLeft;el.style.cursor='grabbing';});
+    el.addEventListener('mouseleave',function(){isDown=false;el.style.cursor='grab';});
+    el.addEventListener('mouseup',function(){isDown=false;el.style.cursor='grab';});
+    el.addEventListener('mousemove',function(e){if(!isDown)return;e.preventDefault();var x=e.pageX-el.offsetLeft;el.scrollLeft=scrollLeft-(x-startX)*1.5;});
+  }
 })();
 
 (function(){
