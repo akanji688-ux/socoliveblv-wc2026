@@ -965,20 +965,14 @@ function buildFeaturedCards(){
   var grid=document.getElementById('featuredCards');
   if(!grid) return;
 
-  // Only use matches from today/tomorrow (filter stale data)
-  var todayD=new Date();
-  var todayS=String(todayD.getDate()).padStart(2,'0')+'/'+String(todayD.getMonth()+1).padStart(2,'0');
-  var tmrD=new Date(todayD.getTime()+86400000);
-  var tmrS=String(tmrD.getDate()).padStart(2,'0')+'/'+String(tmrD.getMonth()+1).padStart(2,'0');
-  function isRecent(m){return !m.d||(m.d===todayS||m.d===tmrS);}
-  function isWC(m){var id=String(m.id);return id.startsWith('e_');}
-  var live   = ALL_MATCHES.filter(function(m){return m.status==='live'&&isRecent(m)&&isWC(m);});
-  var done   = ALL_MATCHES.filter(function(m){return m.status==='done'&&isRecent(m)&&isWC(m);})
-               .sort(function(a,b){return b.t.localeCompare(a.t);});
-  var upcoming= ALL_MATCHES.filter(function(m){return m.status==='upcoming'&&isRecent(m)&&isWC(m);});
-  var wc     = MATCHES.filter(function(m){return !isFake(m);});
+  // Use TODAY_MATCHES (ESPN) directly; fall back to static MATCHES for extra slots
+  var espnLive    = TODAY_MATCHES.filter(function(m){return m.status==='live';});
+  var espnDone    = TODAY_MATCHES.filter(function(m){return m.status==='done';})
+                   .sort(function(a,b){return b.t.localeCompare(a.t);});
+  var espnUp      = TODAY_MATCHES.filter(function(m){return m.status==='upcoming';});
+  var staticWC    = MATCHES.filter(function(m){return !isFake(m);});
 
-  // Pick 3 best cards - no duplicates
+  // Pick cards with no duplicates, ESPN first, static as fallback
   var used={};
   function pick(arr){
     for(var i=0;i<arr.length;i++){
@@ -986,12 +980,12 @@ function buildFeaturedCards(){
     }return null;
   }
 
-  var c1=pick(live)||pick(done)||pick(wc);
-  var c2=pick(live)||pick(upcoming)||pick(wc);
-  var c3=pick(done)||pick(live)||pick(wc);
-  var c4=pick(upcoming)||pick(wc);
-  var c5=pick(upcoming)||pick(wc);
-  var c6=pick(upcoming)||pick(wc);
+  var c1=pick(espnLive)||pick(espnDone)||pick(staticWC);
+  var c2=pick(espnLive)||pick(espnUp)||pick(staticWC);
+  var c3=pick(espnDone)||pick(espnLive)||pick(staticWC);
+  var c4=pick(espnUp)||pick(staticWC);
+  var c5=pick(espnUp)||pick(staticWC);
+  var c6=pick(espnUp)||pick(staticWC);
 
   function rc(m){
     if(!m)return '<div class="fc-card is-soon" style="opacity:.3;min-height:200px;display:flex;align-items:center;justify-content:center;"><span style="color:#555;">Không có trận</span></div>';
