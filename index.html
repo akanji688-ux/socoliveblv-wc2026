@@ -516,48 +516,34 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
 </div>
 
 <!-- BLV SECTION -->
-<div style="background:linear-gradient(135deg,rgba(8,4,25,.98),rgba(15,8,45,.95));border-top:2px solid rgba(255,215,0,.25);border-bottom:2px solid rgba(255,255,255,.08);padding:14px 20px;">
-  <div style="max-width:1300px;margin:0 auto;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+<div style="padding:0 20px 16px;max-width:1300px;margin:0 auto;">
 
-    <!-- BLV list -->
-    <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:16px;">🎙️</span>
-        <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:#FFD700;letter-spacing:2px;text-transform:uppercase;">BÌNH LUẬN VIÊN</span>
-        <span style="font-size:9px;font-weight:800;background:#CC0000;color:#fff;padding:2px 7px;border-radius:3px;letter-spacing:1px;">SOCOLIVE BLV</span>
-      </div>
-      <div id="blvList" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;"></div>
-    </div>
-
-    <!-- Group buttons -->
-    <div style="flex-shrink:0;">
-      <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;text-align:center;">THAM GIA CỘNG ĐỒNG</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="#" target="_blank" data-ga="btn_tham_gia_nhom" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;text-decoration:none;background:linear-gradient(135deg,#1844C8,#3B5BDB);color:#fff;min-width:130px;transition:all .2s;">
-          <span style="font-size:20px;">👥</span>
-          <span style="display:flex;flex-direction:column;">
-            <span style="font-size:9px;opacity:.8;">Cộng đồng</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;">THAM GIA NHÓM</span>
-          </span>
-        </a>
-        <a href="#" target="_blank" data-ga="btn_telegram" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;text-decoration:none;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;min-width:130px;transition:all .2s;">
-          <span style="font-size:20px;">✈️</span>
-          <span style="display:flex;flex-direction:column;">
-            <span style="font-size:9px;opacity:.8;">Telegram</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;">KÊNH TELEGRAM</span>
-          </span>
-        </a>
-        <a href="#" target="_blank" data-ga="btn_zalo" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;text-decoration:none;background:linear-gradient(135deg,#0068FF,#0098FF);color:#fff;min-width:130px;transition:all .2s;">
-          <span style="font-size:20px;">💬</span>
-          <span style="display:flex;flex-direction:column;">
-            <span style="font-size:9px;opacity:.8;">Zalo</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;">NHÓM ZALO</span>
-          </span>
-        </a>
-      </div>
-    </div>
-
+  <!-- Title row -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;margin-top:6px;">
+    <span style="display:inline-block;width:5px;height:28px;background:#FFFFFF;border-radius:3px;"></span>
+    <h2 style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin:0;">BÌNH LUẬN VIÊN</h2>
+    <span style="font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:3px;background:#CC0000;color:#fff;">SOCOLIVE BLV</span>
   </div>
+
+  <!-- BLV cards row -->
+  <div id="blvCards" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:16px;"></div>
+
+  <!-- 3 group buttons -->
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+    <a href="#" target="_blank" data-ga="btn_tham_gia_nhom"
+       style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1844C8,#3B5BDB);color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;border:none;">
+      <span style="font-size:20px;">👥</span> THAM GIA NHÓM
+    </a>
+    <a href="#" target="_blank" data-ga="btn_telegram"
+       style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;border:none;">
+      <span style="font-size:20px;">✈️</span> KÊNH TELEGRAM
+    </a>
+    <a href="#" target="_blank" data-ga="btn_zalo"
+       style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#0068FF,#0098FF);color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;border:none;">
+      <span style="font-size:20px;">💬</span> NHÓM ZALO
+    </a>
+  </div>
+
 </div>
 
 <!-- TABS -->
@@ -1389,22 +1375,32 @@ document.addEventListener('click', function(e){
 // ===== BLV CARDS =====
 (function(){
   var blvs = [
-    {name:'BLV Anh Quân', emoji:'🎙️'},
-    {name:'BLV Minh Trí', emoji:'⚽'},
-    {name:'BLV Tuấn Anh', emoji:'🏆'},
-    {name:'BLV Trung Hiếu', emoji:'🎯'},
-    {name:'BLV Nam Khánh', emoji:'🌟'},
+    {name:'BLV Anh Quân', img:'', emoji:'🎙️', label:'Bình luận viên'},
+    {name:'BLV Minh Trí',  img:'', emoji:'⚽', label:'Bình luận viên'},
+    {name:'BLV Tuấn Anh',  img:'', emoji:'🏆', label:'Bình luận viên'},
+    {name:'BLV Trung Hiếu',img:'', emoji:'🎯', label:'Bình luận viên'},
+    {name:'BLV Nam Khánh', img:'', emoji:'🌟', label:'Bình luận viên'},
+    {name:'BLV Hải Long',  img:'', emoji:'🔥', label:'Bình luận viên'},
   ];
-  var list = document.getElementById('blvList');
-  if(!list) return;
+  var el = document.getElementById('blvCards');
+  if(!el) return;
   var html = '';
   blvs.forEach(function(b){
-    html += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);min-width:70px;cursor:pointer;">';
-    html += '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1844C8,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,215,0,.35);">'+b.emoji+'</div>';
-    html += '<div style="font-size:10px;font-weight:700;color:#ddd;text-align:center;white-space:nowrap;">'+b.name+'</div>';
+    html += '<div style="flex-shrink:0;width:160px;background:rgba(4,15,40,.85);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;transition:transform .2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">';
+    // Avatar area
+    if(b.img){
+      html += '<div style="width:100%;height:130px;background:#111;overflow:hidden;"><img src="'+b.img+'" style="width:100%;height:100%;object-fit:cover;display:block;"></div>';
+    } else {
+      html += '<div style="width:100%;height:130px;background:linear-gradient(135deg,#0D0A2A,#1844C8 60%,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:52px;">'+b.emoji+'</div>';
+    }
+    // Info
+    html += '<div style="padding:10px 12px;">';
+    html += '<div style="font-size:10px;color:#00A651;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">'+b.label+'</div>';
+    html += '<div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:#fff;">'+b.name+'</div>';
+    html += '</div>';
     html += '</div>';
   });
-  list.innerHTML = html;
+  el.innerHTML = html;
 })();
 
 (function(){
