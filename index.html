@@ -512,6 +512,16 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
   </div>
 </div>
 
+<!-- BLV SECTION -->
+<div style="padding:0 20px 20px;max-width:1300px;margin:0 auto;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;margin-top:6px;">
+    <span style="display:inline-block;width:5px;height:28px;background:#fff;border-radius:3px;"></span>
+    <h2 style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin:0;">BÌNH LUẬN VIÊN</h2>
+    <span style="font-size:10px;font-weight:800;background:#CC0000;color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:1px;">SOCOLIVE BLV</span>
+  </div>
+  <div id="blvCards" style="display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;flex-wrap:nowrap;width:100%;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;"></div>
+</div>
+
 <!-- TABS -->
 <div class="tabs-wrap">
 <div class="tab-btns">
@@ -1336,6 +1346,84 @@ function fetchBD24H(){
   setTimeout(function(){bdRefreshing=false;},10000);
 }
 
+
+// ===== BLV CARDS (load from blv-api) =====
+(function(){
+  function renderBLV(blvs){
+    var el = document.getElementById('blvCards');
+    if(!el) return;
+    var html = '';
+    blvs.forEach(function(b){
+      html += '<div style="flex-shrink:0;width:200px;background:rgba(4,15,40,.85);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;">';
+      html += '<div style="width:100%;height:180px;overflow:hidden;background:#0a0620;">';
+      html += '<img src="'+b.img+'" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;" onerror="this.style.opacity=0">';
+      html += '</div>';
+      html += '<div style="padding:10px 12px 12px;">';
+      html += '<div style="font-size:10px;color:#00A651;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Bình luận viên</div>';
+      html += '<div style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:10px;">'+b.name+'</div>';
+      html += '<div style="display:flex;gap:6px;">';
+      html += '<a href="'+(b.nhom||'#')+'" target="_blank" data-ga="btn_blv_nhom" style="flex:1;display:flex;align-items:center;justify-content:center;background:#1844C8;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;">Nhóm</a>';
+      html += '<a href="'+(b.tele||'#')+'" target="_blank" data-ga="btn_blv_tele" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0088cc;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;"><img src="image/BLV/tele.png" style="height:14px;"> Tele</a>';
+      html += '<a href="'+(b.zalo||'#')+'" target="_blank" data-ga="btn_blv_zalo" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0068FF;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;"><img src="image/BLV/zalo.png" style="height:14px;"> Zalo</a>';
+      html += '</div></div></div>';
+    });
+    el.innerHTML = html;
+    (function(){
+      var origCards=Array.from(el.children);
+      var n=origCards.length,CARD_W=216,COPIES=8;
+      if(n===0)return;
+      for(var ci=0;ci<COPIES;ci++){
+        var fr=document.createDocumentFragment();
+        origCards.forEach(function(c){fr.appendChild(c.cloneNode(true));});
+        el.insertBefore(fr,el.firstChild);
+      }
+      for(var ci=0;ci<COPIES;ci++){
+        origCards.forEach(function(c){el.appendChild(c.cloneNode(true));});
+      }
+      var setW=n*CARD_W,paused=false,isDown=false,startX,startScroll,animating=false;
+      function clamp(){
+        if(el.scrollLeft<2*setW)el.scrollLeft+=setW;
+        if(el.scrollLeft>(COPIES*2-2)*setW)el.scrollLeft-=setW;
+      }
+      function animateTo(target,dur,cb){
+        var from=el.scrollLeft,t0=performance.now();
+        function step(now){
+          var p=Math.min((now-t0)/dur,1);
+          p=p<0.5?2*p*p:-1+(4-2*p)*p;
+          el.scrollLeft=from+(target-from)*p;
+          if(p<1){requestAnimationFrame(step);}else{el.scrollLeft=target;if(cb)cb();}
+        }
+        requestAnimationFrame(step);
+      }
+      function nextCard(){
+        if(paused||animating)return;
+        animating=true;
+        animateTo(el.scrollLeft+CARD_W,420,function(){clamp();animating=false;});
+      }
+      el.scrollLeft=COPIES*setW;
+      setInterval(nextCard,2500);
+      el.addEventListener('mouseenter',function(){paused=true;});
+      el.addEventListener('mouseleave',function(){paused=false;});
+      el.addEventListener('touchstart',function(){paused=true;},{passive:true});
+      el.addEventListener('touchend',function(){setTimeout(function(){clamp();paused=false;},100);},{passive:true});
+      el.addEventListener('mousedown',function(e){isDown=true;paused=true;startX=e.pageX;startScroll=el.scrollLeft;el.style.cursor='grabbing';e.preventDefault();});
+      document.addEventListener('mouseup',function(){if(!isDown)return;isDown=false;clamp();paused=false;el.style.cursor='grab';});
+      document.addEventListener('mousemove',function(e){if(!isDown)return;el.scrollLeft=startScroll-(e.pageX-startX);},{passive:true});
+    })();
+  }
+  var _blvHash='';
+  function fetchBLV(){
+    fetch('https://blv-api.antlivetructiep.workers.dev/')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var h=JSON.stringify(d.blvs||[]);
+        if(h!==_blvHash){_blvHash=h;renderBLV(d.blvs||[]);}
+      })
+      .catch(function(){});
+  }
+  fetchBLV();
+  setInterval(fetchBLV,5000);
+})();
 
 // ===== INIT =====
 ALL_MATCHES=MATCHES.filter(function(m){return !isFake(m);});
