@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Quản lý BLV – Socolive</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0A2A;color:#eee;min-height:100vh;padding:24px 16px;}
+h1{font-size:22px;font-weight:700;color:#FFD700;margin-bottom:6px;}
+.sub{font-size:13px;color:#888;margin-bottom:24px;}
+.token-bar{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px;margin-bottom:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.token-bar label{font-size:12px;color:#aaa;white-space:nowrap;}
+.token-bar input{flex:1;min-width:200px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:7px 10px;color:#fff;font-size:13px;}
+.btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.5px;}
+.btn-save{background:#00A651;color:#fff;}
+.btn-save:hover{background:#009044;}
+.btn-add{background:#1844C8;color:#fff;}
+.btn-add:hover{background:#1235a0;}
+.btn-del{background:#CC0000;color:#fff;padding:6px 12px;font-size:11px;}
+.cards{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;display:grid;grid-template-columns:100px 1fr;gap:14px;align-items:start;}
+.card img{width:100px;height:100px;object-fit:cover;border-radius:8px;background:#111;}
+.card-fields{display:flex;flex-direction:column;gap:8px;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:11px;color:#888;letter-spacing:.5px;}
+.field input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:7px 10px;color:#fff;font-size:13px;width:100%;}
+.field input:focus{outline:none;border-color:#FFD700;}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.card-name{font-size:15px;font-weight:700;color:#fff;}
+.upload-wrap{display:flex;gap:8px;align-items:center;}
+.upload-wrap input[type=file]{display:none;}
+.btn-upload{background:rgba(255,255,255,.1);color:#ddd;border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;}
+.status{padding:10px 14px;border-radius:8px;font-size:13px;display:none;margin-bottom:16px;}
+.status.ok{background:rgba(0,166,81,.2);border:1px solid #00A651;color:#00ff88;display:block;}
+.status.err{background:rgba(204,0,0,.2);border:1px solid #CC0000;color:#ff6666;display:block;}
+.bottom-bar{display:flex;gap:10px;flex-wrap:wrap;}
+.hint{font-size:11px;color:#555;margin-top:8px;}
+@media(max-width:500px){.card{grid-template-columns:1fr;}.card img{width:80px;height:80px;}}
+</style>
+</head>
+<body>
+
+<h1>⚙️ Quản lý BLV</h1>
+<p class="sub">Chỉnh sửa thông tin BLV, nhấn <b>Lưu & Đồng bộ</b> để cập nhật site.</p>
+
+<div class="token-bar">
+  <label>GitHub Token:</label>
+  <input type="password" id="ghToken" placeholder="ghp_xxxx... (lưu 1 lần)"/>
+  <button class="btn" style="background:#444;color:#fff;" onclick="saveToken()">Lưu token</button>
+</div>
+
+<div id="status" class="status"></div>
+
+<div class="cards" id="cardList"></div>
+
+<div class="bottom-bar">
+  <button class="btn btn-add" onclick="addBLV()">+ Thêm BLV</button>
+  <button class="btn btn-save" onclick="saveAll()">💾 Lưu & Đồng bộ</button>
+</div>
+<p class="hint">Sau khi lưu, site cập nhật trong ~1 phút (Cloudflare deploy)</p>
+
+<script>
+var REPO = 'akanji688-ux/socoliveblv-wc2026';
+var FILE = 'blv-data.json';
+var blvData = [];
+var fileSha = '';
+
+function getToken(){
+  return localStorage.getItem('gh_token') || document.getElementById('ghToken').value.trim();
+}
+function saveToken(){
+  var t = document.getElementById('ghToken').value.trim();
+  if(t){ localStorage.setItem('gh_token', t); showStatus('ok','Token đã lưu!'); }
+}
+
+function showStatus(type, msg){
+  var el = document.getElementById('status');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+  setTimeout(function(){ el.style.display='none'; }, 4000);
+}
+
+function renderCards(){
+  var html = '';
+  blvData.forEach(function(b, i){
+    var imgSrc = b.img || '';
+    html += '<div class="card" id="card-'+i+'">';
+    html += '<div><img id="preview-'+i+'" src="'+imgSrc+'" onerror="this.style.opacity=0.3"/>';
+    html += '<div class="upload-wrap" style="margin-top:6px;">';
+    html += '<label class="btn-upload" for="file-'+i+'">📷 Đổi ảnh</label>';
+    html += '<input type="file" id="file-'+i+'" accept="image/*" onchange="previewImg('+i+',this)"/>';
+    html += '</div></div>';
+    html += '<div class="card-fields">';
+    html += '<div class="card-top"><span class="card-name">'+(b.name||'BLV mới')+'</span>';
+    html += '<button class="btn btn-del" onclick="removeBLV('+i+')">✕ Xóa</button></div>';
+    html += '<div class="field"><label>Tên BLV</label><input value="'+esc(b.name||'')+'" oninput="upd('+i+',\'name\',this.value)"/></div>';
+    html += '<div class="field"><label>Link ảnh (hoặc upload ở trái)</label><input value="'+esc(b.img||'')+'" oninput="upd('+i+',\'img\',this.value)"/></div>';
+    html += '<div class="field"><label>👥 Link Nhóm</label><input value="'+esc(b.nhom||'')+'" placeholder="https://..." oninput="upd('+i+',\'nhom\',this.value)"/></div>';
+    html += '<div class="field"><label>✈️ Link Telegram</label><input value="'+esc(b.tele||'')+'" placeholder="https://t.me/..." oninput="upd('+i+',\'tele\',this.value)"/></div>';
+    html += '<div class="field"><label>💬 Link Zalo</label><input value="'+esc(b.zalo||'')+'" placeholder="https://zalo.me/..." oninput="upd('+i+',\'zalo\',this.value)"/></div>';
+    html += '</div></div>';
+  });
+  document.getElementById('cardList').innerHTML = html;
+}
+
+function esc(s){ return s.replace(/"/g,'&quot;'); }
+function upd(i, key, val){ blvData[i][key] = val; if(key==='name') document.querySelector('#card-'+i+' .card-name').textContent=val; }
+function removeBLV(i){ blvData.splice(i,1); renderCards(); }
+function addBLV(){ blvData.push({name:'BLV Mới',img:'',nhom:'#',tele:'#',zalo:'#'}); renderCards(); }
+
+function previewImg(i, input){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    document.getElementById('preview-'+i).src = e.target.result;
+    // Upload to GitHub
+    uploadImage(i, file, e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadImage(i, file, dataUrl){
+  var token = getToken();
+  if(!token){ showStatus('err','Chưa nhập GitHub Token!'); return; }
+  var base64 = dataUrl.split(',')[1];
+  var path = 'image/BLV/' + file.name;
+  showStatus('ok','Đang upload ảnh...');
+  // Check if file exists first (to get sha)
+  fetch('https://api.github.com/repos/'+REPO+'/contents/'+path, {
+    headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
+  })
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(existing){
+    var body = {message:'Upload ảnh BLV: '+file.name, content:base64};
+    if(existing && existing.sha) body.sha = existing.sha;
+    return fetch('https://api.github.com/repos/'+REPO+'/contents/'+path, {
+      method:'PUT',
+      headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.content){
+      blvData[i].img = path;
+      showStatus('ok','Upload ảnh thành công: '+file.name);
+    } else {
+      showStatus('err','Lỗi upload: '+(d.message||'unknown'));
+    }
+  })
+  .catch(function(e){ showStatus('err','Lỗi: '+e.message); });
+}
+
+function saveAll(){
+  var token = getToken();
+  if(!token){ showStatus('err','Chưa nhập GitHub Token! Nhập vào ô trên rồi nhấn Lưu token.'); return; }
+  showStatus('ok','Đang lưu...');
+  var content = JSON.stringify({blvs: blvData}, null, 2);
+  var b64 = btoa(unescape(encodeURIComponent(content)));
+  var body = {message:'Admin: cập nhật BLV data', content: b64};
+  if(fileSha) body.sha = fileSha;
+  fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE, {
+    method:'PUT',
+    headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+    body: JSON.stringify(body)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.content){
+      fileSha = d.content.sha;
+      showStatus('ok','✅ Đã lưu! Site sẽ cập nhật trong ~1 phút.');
+    } else {
+      showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
+    }
+  })
+  .catch(function(e){ showStatus('err','Lỗi kết nối: '+e.message); });
+}
+
+// Load data on start
+var savedToken = localStorage.getItem('gh_token');
+if(savedToken) document.getElementById('ghToken').value = '••••••••••••••••';
+
+fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE, {
+  headers: savedToken ? {'Authorization':'token '+savedToken,'Accept':'application/vnd.github.v3+json'} : {}
+})
+.then(function(r){ return r.json(); })
+.then(function(d){
+  fileSha = d.sha || '';
+  var json = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
+  blvData = json.blvs || [];
+  renderCards();
+})
+.catch(function(){
+  blvData = [];
+  renderCards();
+  showStatus('err','Không tải được dữ liệu. Kiểm tra token.');
+});
+</script>
+</body>
+</html>

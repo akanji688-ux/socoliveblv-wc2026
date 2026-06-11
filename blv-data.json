@@ -1,0 +1,8 @@
+{
+  "blvs": [
+    {"name": "BLV 7Up",          "img": "image/BLV/blv7up.png",        "nhom": "#", "tele": "#", "zalo": "#"},
+    {"name": "BLV Coca",         "img": "image/BLV/blvcoca.webp",       "nhom": "#", "tele": "#", "zalo": "#"},
+    {"name": "BLV Củ Cải",       "img": "image/BLV/blvcucai.png",       "nhom": "#", "tele": "#", "zalo": "#"},
+    {"name": "BLV Tà Biên Giới", "img": "image/BLV/blvtabiengioi.webp", "nhom": "#", "tele": "#", "zalo": "#"}
+  ]
+}
