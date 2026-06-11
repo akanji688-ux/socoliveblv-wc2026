@@ -1416,10 +1416,12 @@ document.addEventListener('click', function(e){
       document.addEventListener('mousemove',function(e){if(!isDown)return;el.scrollLeft=startScroll-(e.pageX-startX);},{passive:true});
     })();
   }
-  fetch('blv-data.json?v='+Date.now())
+  fetch('https://raw.githubusercontent.com/akanji688-ux/socoliveblv-wc2026/main/blv-data.json?v='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){renderBLV(d.blvs||[]);})
-    .catch(function(){renderBLV([]);});
+    .catch(function(){
+      fetch('blv-data.json?v='+Date.now()).then(function(r){return r.json();}).then(function(d){renderBLV(d.blvs||[]);}).catch(function(){renderBLV([]);});
+    });
 
 })();
 
