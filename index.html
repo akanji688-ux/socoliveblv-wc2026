@@ -1389,7 +1389,12 @@ document.addEventListener('click', function(e){
     function nextCard(){
       if(paused)return;
       var maxIdx=Math.max(0,Math.round((el.scrollWidth-el.clientWidth)/CARD_W));
-      idx=(idx>=maxIdx)?0:idx+1;
+      if(idx>=maxIdx){
+        idx=0;
+        el.scrollTo({left:0,behavior:'instant'});
+        return;
+      }
+      idx++;
       scrollToCard(idx);
     }
     autoTimer=setInterval(nextCard,3000);
