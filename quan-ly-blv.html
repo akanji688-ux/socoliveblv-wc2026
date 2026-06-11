@@ -159,49 +159,42 @@ function uploadImage(i,file,dataUrl){
 function saveOne(i){
   var btn=document.getElementById('savebtn-'+i);
   if(btn){btn.disabled=true;btn.textContent='Đang lưu...';}
-  showStatus('ok','Đang lưu BLV '+blvData[i].name+'...');
+  showStatus('ok','Đang lưu...');
   fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json','Cache-Control':'no-cache'}
+    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
   })
   .then(function(r){return r.json();})
   .then(function(latest){
-    fileSha=latest.sha||fileSha;
-    // Merge: update only this card in the latest data
-    var latestBlvs=JSON.parse(decodeURIComponent(escape(atob(latest.content.replace(/\n/g,'')))));
-    latestBlvs.blvs[i]=blvData[i];
-    blvData=latestBlvs.blvs;
+    var sha=latest.sha;
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
     return fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
       method:'PUT',
       headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify({message:'Admin: cập nhật '+blvData[i].name,content:b64,sha:fileSha})
+      body:JSON.stringify({message:'Admin: '+blvData[i].name,content:b64,sha:sha})
     });
   })
   .then(function(r){return r.json();})
   .then(function(d){
     if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}
-    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu '+blvData[i].name+'! Site cập nhật sau ~1 phút.');}
+    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Site cập nhật sau ~1 phút.');}
     else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
   })
   .catch(function(e){if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}showStatus('err','Lỗi: '+e.message);});
 }
 
 function saveAll(){
-  showStatus('ok','Đang lấy SHA mới nhất...');
-  // Always fetch latest SHA before saving to avoid conflicts
+  showStatus('ok','Đang lưu...');
   fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json','Cache-Control':'no-cache'}
+    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
   })
   .then(function(r){return r.json();})
   .then(function(latest){
-    fileSha=latest.sha||fileSha;
-    showStatus('ok','Đang lưu...');
+    var sha=latest.sha;
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
-    var body={message:'Admin: cập nhật BLV',content:b64,sha:fileSha};
     return fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
       method:'PUT',
       headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify(body)
+      body:JSON.stringify({message:'Admin: cập nhật BLV',content:b64,sha:sha})
     });
   })
   .then(function(r){return r.json();})
