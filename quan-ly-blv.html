@@ -7,96 +7,99 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:#0D0A2A;color:#eee;min-height:100vh;padding:20px 16px;}
-h1{font-size:20px;font-weight:700;color:#FFD700;margin-bottom:4px;}
-.sub{font-size:12px;color:#777;margin-bottom:20px;}
-.status{padding:9px 14px;border-radius:8px;font-size:13px;display:none;margin-bottom:14px;}
+.wrap{max-width:680px;margin:0 auto;}
+h1{font-size:18px;font-weight:700;color:#FFD700;margin-bottom:3px;}
+.sub{font-size:11px;color:#666;margin-bottom:16px;}
+.status{padding:7px 12px;border-radius:6px;font-size:12px;display:none;margin-bottom:12px;}
 .status.ok{background:rgba(0,166,81,.2);border:1px solid #00A651;color:#00ff88;display:block;}
 .status.err{background:rgba(204,0,0,.2);border:1px solid #CC0000;color:#ff6666;display:block;}
-.cards{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
-.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:flex-start;}
-.card-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;}
-.card-left img{width:80px;height:80px;object-fit:cover;border-radius:8px;background:#111;}
-.btn-upload{background:rgba(255,255,255,.1);color:#ccc;border:1px solid rgba(255,255,255,.15);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:10px;white-space:nowrap;}
+.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;display:flex;gap:10px;}
+.card-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.card-left img{width:64px;height:64px;object-fit:cover;border-radius:6px;background:#111;}
+.btn-upload{background:rgba(255,255,255,.08);color:#aaa;border:1px solid rgba(255,255,255,.12);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:9px;}
 input[type=file]{display:none;}
 .card-right{flex:1;min-width:0;}
-.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.card-name{font-size:14px;font-weight:700;color:#fff;}
-.btn-del{background:#CC0000;color:#fff;border:none;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px;}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.card-name{font-size:13px;font-weight:700;color:#fff;}
+.btn-del{background:#CC0000;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:10px;}
+.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
 .field{display:flex;flex-direction:column;gap:2px;}
-.field label{font-size:10px;color:#777;letter-spacing:.4px;}
-.field input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:5px 8px;color:#fff;font-size:12px;width:100%;}
+.field.full{grid-column:span 3;}
+.field.half{grid-column:span 1;}
+.field label{font-size:9px;color:#666;letter-spacing:.3px;text-transform:uppercase;}
+.field input{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:4px 7px;color:#fff;font-size:11px;width:100%;}
 .field input:focus{outline:none;border-color:#FFD700;}
-.bottom{display:flex;gap:8px;flex-wrap:wrap;}
-.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;}
+.bottom{display:flex;gap:8px;}
+.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:700;}
 .btn-save{background:#00A651;color:#fff;}
 .btn-add{background:#1844C8;color:#fff;}
-.hint{font-size:11px;color:#555;margin-top:8px;}
+.hint{font-size:10px;color:#444;margin-top:6px;}
 </style>
 </head>
 <body>
+<div class="wrap">
 <h1>⚙️ Quản lý BLV</h1>
-<p class="sub">Chỉnh sửa → nhấn <b>Lưu & Đồng bộ</b> để cập nhật site (~1 phút)</p>
+<p class="sub">Chỉnh sửa → nhấn <b>Lưu & Đồng bộ</b> (~1 phút)</p>
 <div id="status" class="status"></div>
 <div class="cards" id="cardList"></div>
 <div class="bottom">
-  <button class="btn btn-add" onclick="addBLV()">+ Thêm BLV</button>
+  <button class="btn btn-add" onclick="addBLV()">+ Thêm</button>
   <button class="btn btn-save" onclick="saveAll()">💾 Lưu & Đồng bộ</button>
 </div>
 <p class="hint">Cloudflare tự deploy sau khi lưu</p>
+</div>
 
 <script>
-var TOKEN = ['ghp','_Ddyo4wwkN6lErTlFFks','AO6trqmhHmm3OhkqU'].join('');
-var REPO  = 'akanji688-ux/socoliveblv-wc2026';
-var FILE  = 'blv-data.json';
-var blvData = [], fileSha = '';
+var TOKEN=['ghp','_Ddyo4wwkN6lErTlFFks','AO6trqmhHmm3OhkqU'].join('');
+var REPO='akanji688-ux/socoliveblv-wc2026';
+var FILE='blv-data.json';
+var blvData=[],fileSha='';
 
-function showStatus(type, msg){
-  var el = document.getElementById('status');
-  el.className = 'status ' + type;
-  el.textContent = msg;
-  if(type==='ok') setTimeout(function(){ el.style.display='none'; }, 4000);
+function showStatus(type,msg){
+  var el=document.getElementById('status');
+  el.className='status '+type; el.textContent=msg;
+  if(type==='ok') setTimeout(function(){el.style.display='none';},4000);
 }
-function esc(s){ return (s||'').replace(/"/g,'&quot;'); }
-function upd(i, key, val){ blvData[i][key]=val; if(key==='name') document.querySelector('#card-'+i+' .card-name').textContent=val||''; }
-function removeBLV(i){ blvData.splice(i,1); renderCards(); }
-function addBLV(){ blvData.push({name:'BLV Mới',img:'',nhom:'#',tele:'#',zalo:'#'}); renderCards(); }
+function esc(s){return (s||'').replace(/"/g,'&quot;');}
+function upd(i,key,val){blvData[i][key]=val;if(key==='name')document.querySelector('#card-'+i+' .card-name').textContent=val||'';}
+function removeBLV(i){blvData.splice(i,1);renderCards();}
+function addBLV(){blvData.push({name:'BLV Mới',img:'',nhom:'#',tele:'#',zalo:'#'});renderCards();}
 
 function renderCards(){
   var html='';
   blvData.forEach(function(b,i){
     html+='<div class="card" id="card-'+i+'">';
     html+='<div class="card-left">';
-    html+='<img id="preview-'+i+'" src="'+esc(b.img)+'" onerror="this.style.opacity=.3"/>';
+    html+='<img id="preview-'+i+'" src="'+esc(b.img)+'" onerror="this.style.opacity=.2"/>';
     html+='<label class="btn-upload" for="file-'+i+'">📷 Đổi ảnh</label>';
     html+='<input type="file" id="file-'+i+'" accept="image/*" onchange="previewImg('+i+',this)"/>';
     html+='</div>';
     html+='<div class="card-right">';
-    html+='<div class="card-top"><span class="card-name">'+esc(b.name)+'</span><button class="btn-del" onclick="removeBLV('+i+')">✕ Xóa</button></div>';
-    html+='<div class="field" style="margin-bottom:6px"><label>Tên BLV</label><input value="'+esc(b.name)+'" oninput="upd('+i+',\'name\',this.value)"/></div>';
-    html+='<div class="field" style="margin-bottom:6px"><label>Link ảnh</label><input value="'+esc(b.img)+'" oninput="upd('+i+',\'img\',this.value)"/></div>';
-    html+='<div class="row2">';
-    html+='<div class="field"><label>👥 Nhóm</label><input value="'+esc(b.nhom)+'" oninput="upd('+i+',\'nhom\',this.value)"/></div>';
-    html+='<div class="field"><label>✈️ Telegram</label><input value="'+esc(b.tele)+'" oninput="upd('+i+',\'tele\',this.value)"/></div>';
-    html+='</div>';
-    html+='<div class="field" style="margin-top:6px"><label>💬 Zalo</label><input value="'+esc(b.zalo)+'" oninput="upd('+i+',\'zalo\',this.value)"/></div>';
-    html+='</div></div>';
+    html+='<div class="card-top"><span class="card-name">'+esc(b.name)+'</span><button class="btn-del" onclick="removeBLV('+i+')">✕</button></div>';
+    html+='<div class="fields">';
+    html+='<div class="field half"><label>Tên BLV</label><input value="'+esc(b.name)+'" oninput="upd('+i+',\'name\',this.value)"/></div>';
+    html+='<div class="field half" style="grid-column:span 2"><label>Link ảnh</label><input value="'+esc(b.img)+'" oninput="upd('+i+',\'img\',this.value)"/></div>';
+    html+='<div class="field half"><label>👥 Nhóm</label><input value="'+esc(b.nhom)+'" oninput="upd('+i+',\'nhom\',this.value)"/></div>';
+    html+='<div class="field half"><label>✈️ Telegram</label><input value="'+esc(b.tele)+'" oninput="upd('+i+',\'tele\',this.value)"/></div>';
+    html+='<div class="field half"><label>💬 Zalo</label><input value="'+esc(b.zalo)+'" oninput="upd('+i+',\'zalo\',this.value)"/></div>';
+    html+='</div></div></div>';
   });
-  document.getElementById('cardList').innerHTML = html;
+  document.getElementById('cardList').innerHTML=html;
 }
 
-function previewImg(i, input){
-  var file=input.files[0]; if(!file) return;
+function previewImg(i,input){
+  var file=input.files[0];if(!file)return;
   var reader=new FileReader();
   reader.onload=function(e){
     document.getElementById('preview-'+i).src=e.target.result;
     document.getElementById('preview-'+i).style.opacity=1;
-    uploadImage(i, file, e.target.result);
+    uploadImage(i,file,e.target.result);
   };
   reader.readAsDataURL(file);
 }
 
-function uploadImage(i, file, dataUrl){
+function uploadImage(i,file,dataUrl){
   var b64=dataUrl.split(',')[1];
   var path='image/BLV/'+file.name;
   showStatus('ok','Đang upload ảnh...');
@@ -105,28 +108,26 @@ function uploadImage(i, file, dataUrl){
   })
   .then(function(r){return r.ok?r.json():null;})
   .then(function(ex){
-    var body={message:'Upload ảnh: '+file.name,content:b64};
-    if(ex&&ex.sha) body.sha=ex.sha;
+    var body={message:'Upload: '+file.name,content:b64};
+    if(ex&&ex.sha)body.sha=ex.sha;
     return fetch('https://api.github.com/repos/'+REPO+'/contents/'+path,{
-      method:'PUT',
-      headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json'},
+      method:'PUT',headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
   })
   .then(function(r){return r.json();})
   .then(function(d){
-    if(d.content){blvData[i].img=path; showStatus('ok','✅ Upload ảnh xong: '+file.name);}
-    else showStatus('err','Lỗi upload: '+(d.message||'unknown'));
+    if(d.content){blvData[i].img=path;showStatus('ok','✅ Upload xong: '+file.name);}
+    else showStatus('err','Lỗi: '+(d.message||'unknown'));
   })
   .catch(function(e){showStatus('err','Lỗi: '+e.message);});
 }
 
 function saveAll(){
   showStatus('ok','Đang lưu...');
-  var content=JSON.stringify({blvs:blvData},null,2);
-  var b64=btoa(unescape(encodeURIComponent(content)));
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
   var body={message:'Admin: cập nhật BLV',content:b64};
-  if(fileSha) body.sha=fileSha;
+  if(fileSha)body.sha=fileSha;
   fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
     method:'PUT',
     headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
@@ -134,21 +135,19 @@ function saveAll(){
   })
   .then(function(r){return r.json();})
   .then(function(d){
-    if(d.content){fileSha=d.content.sha; showStatus('ok','✅ Đã lưu! Site cập nhật sau ~1 phút.');}
+    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Site cập nhật sau ~1 phút.');}
     else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
   })
-  .catch(function(e){showStatus('err','Lỗi kết nối: '+e.message);});
+  .catch(function(e){showStatus('err','Lỗi: '+e.message);});
 }
 
-// Load data
 fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
   headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
 })
 .then(function(r){return r.json();})
 .then(function(d){
   fileSha=d.sha||'';
-  var json=JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
-  blvData=json.blvs||[];
+  blvData=JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))).blvs||[];
   renderCards();
 })
 .catch(function(){blvData=[];renderCards();showStatus('err','Không tải được dữ liệu.');});
