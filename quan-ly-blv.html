@@ -10,11 +10,6 @@ body{font-family:'Segoe UI',sans-serif;background:#0D0A2A;color:#eee;min-height:
 .wrap{max-width:680px;margin:0 auto;}
 h1{font-size:18px;font-weight:700;color:#FFD700;margin-bottom:3px;}
 .sub{font-size:11px;color:#666;margin-bottom:16px;}
-.status{display:none;}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);min-width:280px;max-width:90vw;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:600;text-align:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.6);animation:slideUp .3s ease;}
-.toast.ok{background:#00A651;color:#fff;border:2px solid #00d466;}
-.toast.err{background:#CC0000;color:#fff;border:2px solid #ff4444;}
-@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);min-width:280px;max-width:90vw;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;text-align:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideUp .3s ease;}
 .toast.ok{background:#00A651;color:#fff;border:2px solid #00d466;}
 .toast.err{background:#CC0000;color:#fff;border:2px solid #ff4444;}
@@ -36,6 +31,7 @@ input[type=file]{display:none;}
 .field label{font-size:9px;color:#666;letter-spacing:.3px;text-transform:uppercase;}
 .field input{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:4px 7px;color:#fff;font-size:11px;width:100%;}
 .field input:focus{outline:none;border-color:#FFD700;}
+.btn-save-card{background:#00A651;color:#fff;border:none;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:700;}
 .bottom{display:flex;gap:8px;}
 .btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:700;}
 .btn-save{background:#00A651;color:#fff;}
@@ -46,35 +42,22 @@ input[type=file]{display:none;}
 <body>
 <div class="wrap">
 <h1>⚙️ Quản lý BLV</h1>
-<p class="sub">Chỉnh sửa → nhấn <b>Lưu & Đồng bộ</b> (~1 phút)</p>
-<div id="status" class="status"></div>
-<div class="cards" id="cardList"></div>
+<p class="sub">Chỉnh sửa → nhấn <b>💾 Lưu</b> để đồng bộ ngay</p>
+<div id="cardList" class="cards"></div>
 <div class="bottom">
   <button class="btn btn-add" onclick="addBLV()">+ Thêm</button>
-  <button class="btn btn-save" onclick="saveAll()">💾 Lưu & Đồng bộ</button>
+  <button class="btn btn-save" onclick="saveAll()">💾 Lưu tất cả</button>
 </div>
-<p class="hint">Cloudflare tự deploy sau khi lưu</p>
+<p class="hint">Dữ liệu lưu trực tiếp vào Cloudflare KV — cập nhật ngay lập tức</p>
 </div>
 
 <script>
-var TOKEN=localStorage.getItem('gh_tok')||'';
+var WORKER_URL='https://blv-api.antlivetructiep.workers.dev/';
+var WORKER_PASS=localStorage.getItem('blv_pass')||'socolive2026';
 var REPO='akanji688-ux/socoliveblv-wc2026';
-var FILE='blv-data.json';
-var blvData=[],fileSha='';
+var TOKEN=localStorage.getItem('gh_tok')||'';
+var blvData=[];
 
-function saveToken(){
-  var t=document.getElementById('tokenInput').value.trim();
-  if(!t){showStatus('err','Vui lòng nhập token!');return;}
-  localStorage.setItem('gh_tok',t);
-  TOKEN=t;
-  document.getElementById('tokenBar').style.borderColor='rgba(0,166,81,.5)';
-  showStatus('ok','✅ Token đã lưu!');
-}
-// Load saved token on DOM ready
-document.addEventListener('DOMContentLoaded',function(){
-  var t=localStorage.getItem('gh_tok');
-  if(t){TOKEN=t;var bar=document.getElementById('tokenBar');if(bar)bar.style.borderColor='rgba(0,166,81,.3)';}
-});
 function showStatus(type,msg){
   var old=document.getElementById('toast-msg');
   if(old)old.remove();
@@ -90,6 +73,7 @@ function showStatus(type,msg){
     setTimeout(function(){if(t.parentNode)t.remove();},400);
   },dur);
 }
+
 function esc(s){return (s||'').replace(/"/g,'&quot;');}
 function upd(i,key,val){blvData[i][key]=val;if(key==='name')document.querySelector('#card-'+i+' .card-name').textContent=val||'';}
 function removeBLV(i){blvData.splice(i,1);renderCards();}
@@ -136,13 +120,14 @@ function uploadImage(i,file,dataUrl){
   var b64=dataUrl.split(',')[1];
   var path='image/BLV/'+file.name;
   showStatus('ok','Đang upload ảnh...');
-  fetch('https://api.github.com/repos/'+REPO+'/contents/'+path,{
-    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
-  })
+  var h={'Accept':'application/vnd.github.v3+json'};
+  if(TOKEN) h['Authorization']='token '+TOKEN;
+  fetch('https://api.github.com/repos/'+REPO+'/contents/'+path,{headers:h})
   .then(function(r){return r.ok?r.json():null;})
   .then(function(ex){
     var body={message:'Upload: '+file.name,content:b64};
     if(ex&&ex.sha)body.sha=ex.sha;
+    if(!TOKEN){showStatus('err','Cần GitHub token để upload ảnh');return Promise.reject(new Error('no token'));}
     return fetch('https://api.github.com/repos/'+REPO+'/contents/'+path,{
       method:'PUT',headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json'},
       body:JSON.stringify(body)
@@ -151,72 +136,49 @@ function uploadImage(i,file,dataUrl){
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.content){blvData[i].img=path;showStatus('ok','✅ Upload xong: '+file.name);}
-    else showStatus('err','Lỗi: '+(d.message||'unknown'));
+    else showStatus('err','Lỗi upload ảnh: '+(d.message||'unknown'));
   })
-  .catch(function(e){showStatus('err','Lỗi: '+e.message);});
+  .catch(function(e){if(e.message!=='no token')showStatus('err','Lỗi: '+e.message);});
 }
 
 function saveOne(i){
   var btn=document.getElementById('savebtn-'+i);
   if(btn){btn.disabled=true;btn.textContent='Đang lưu...';}
   showStatus('ok','Đang lưu...');
-  fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
-  })
-  .then(function(r){return r.json();})
-  .then(function(latest){
-    var sha=latest.sha;
-    var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
-    return fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-      method:'PUT',
-      headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify({message:'Admin: '+blvData[i].name,content:b64,sha:sha})
-    });
+  fetch(WORKER_URL,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+WORKER_PASS},
+    body:JSON.stringify({blvs:blvData})
   })
   .then(function(r){return r.json();})
   .then(function(d){
     if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}
-    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Index tự cập nhật sau ~10 giây.');}
-    else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
+    if(d.ok){showStatus('ok','✅ Đã lưu! Index cập nhật ngay lập tức!');}
+    else showStatus('err','Lỗi: '+(d.error||JSON.stringify(d)));
   })
   .catch(function(e){if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}showStatus('err','Lỗi: '+e.message);});
 }
 
 function saveAll(){
   showStatus('ok','Đang lưu...');
-  fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json'}
-  })
-  .then(function(r){return r.json();})
-  .then(function(latest){
-    var sha=latest.sha;
-    var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
-    return fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-      method:'PUT',
-      headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify({message:'Admin: cập nhật BLV',content:b64,sha:sha})
-    });
+  fetch(WORKER_URL,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+WORKER_PASS},
+    body:JSON.stringify({blvs:blvData})
   })
   .then(function(r){return r.json();})
   .then(function(d){
-    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Index tự cập nhật sau ~10 giây.');}
-    else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
+    if(d.ok){showStatus('ok','✅ Đã lưu! Index cập nhật ngay lập tức!');}
+    else showStatus('err','Lỗi: '+(d.error||JSON.stringify(d)));
   })
   .catch(function(e){showStatus('err','Lỗi: '+e.message);});
 }
 
 (function(){
-  var h={'Accept':'application/vnd.github.v3+json'};
-  if(TOKEN) h['Authorization']='token '+TOKEN;
-  fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{headers:h})
+  fetch(WORKER_URL)
   .then(function(r){return r.json();})
   .then(function(d){
-    if(!d.content) throw new Error(d.message||'No content');
-    fileSha=d.sha||'';
-    var bytes=atob(d.content.replace(/\n/g,''));
-    var arr=new Uint8Array(bytes.length);
-    for(var j=0;j<bytes.length;j++) arr[j]=bytes.charCodeAt(j);
-    blvData=JSON.parse(new TextDecoder().decode(arr)).blvs||[];
+    blvData=d.blvs||[];
     renderCards();
   })
   .catch(function(e){blvData=[];renderCards();showStatus('err','Không tải được dữ liệu: '+e.message);});

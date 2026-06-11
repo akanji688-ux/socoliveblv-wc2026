@@ -1418,30 +1418,16 @@ document.addEventListener('click', function(e){
   }
   var _blvHash='';
   function fetchBLV(){
-    var tok=localStorage.getItem('gh_tok')||'';
-    var apiUrl='https://api.github.com/repos/akanji688-ux/socoliveblv-wc2026/contents/blv-data.json?t='+Date.now();
-    var hdrs={'Accept':'application/vnd.github.v3+json'};
-    if(tok) hdrs['Authorization']='token '+tok;
-    fetch(apiUrl,{headers:hdrs})
+    fetch('https://blv-api.antlivetructiep.workers.dev/')
       .then(function(r){return r.json();})
       .then(function(d){
-        if(!d.content) throw new Error('no content');
-        var bytes=atob(d.content.replace(/\n/g,''));
-        var arr=new Uint8Array(bytes.length);
-        for(var j=0;j<bytes.length;j++) arr[j]=bytes.charCodeAt(j);
-        var json=JSON.parse(new TextDecoder().decode(arr));
-        var h=JSON.stringify(json.blvs||[]);
-        if(h!==_blvHash){_blvHash=h;renderBLV(json.blvs||[]);}
+        var h=JSON.stringify(d.blvs||[]);
+        if(h!==_blvHash){_blvHash=h;renderBLV(d.blvs||[]);}
       })
-      .catch(function(){
-        fetch('blv-data.json?v='+Date.now())
-          .then(function(r){return r.json();})
-          .then(function(d){var h=JSON.stringify(d.blvs||[]);if(h!==_blvHash){_blvHash=h;renderBLV(d.blvs||[]);}})
-          .catch(function(){});
-      });
+      .catch(function(){});
   }
   fetchBLV();
-  setInterval(fetchBLV,10000);
+  setInterval(fetchBLV,5000);
 
 })();
 
