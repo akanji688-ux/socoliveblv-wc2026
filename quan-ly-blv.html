@@ -15,7 +15,11 @@ h1{font-size:18px;font-weight:700;color:#FFD700;margin-bottom:3px;}
 .toast.err{background:#CC0000;color:#fff;border:2px solid #ff4444;}
 @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
-.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;display:flex;gap:10px;}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;display:flex;gap:10px;transition:opacity .2s,transform .2s;}
+.card.dragging{opacity:.4;transform:scale(.98);}
+.card.drag-over{border-color:#FFD700;background:rgba(255,215,0,.08);}
+.drag-handle{flex-shrink:0;display:flex;align-items:center;padding:0 4px 0 0;cursor:grab;color:#555;font-size:20px;user-select:none;touch-action:none;}
+.drag-handle:active{cursor:grabbing;color:#FFD700;}
 .card-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;}
 .card-left img{width:64px;height:64px;object-fit:cover;border-radius:6px;background:#111;}
 .btn-upload{background:rgba(255,255,255,.08);color:#aaa;border:1px solid rgba(255,255,255,.12);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:9px;}
@@ -26,7 +30,6 @@ input[type=file]{display:none;}
 .btn-del{background:#CC0000;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:10px;}
 .fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
 .field{display:flex;flex-direction:column;gap:2px;}
-.field.full{grid-column:span 3;}
 .field.half{grid-column:span 1;}
 .field label{font-size:9px;color:#666;letter-spacing:.3px;text-transform:uppercase;}
 .field input{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:4px 7px;color:#fff;font-size:11px;width:100%;}
@@ -42,7 +45,7 @@ input[type=file]{display:none;}
 <body>
 <div class="wrap">
 <h1>⚙️ Quản lý BLV</h1>
-<p class="sub">Chỉnh sửa → nhấn <b>💾 Lưu</b> để đồng bộ ngay</p>
+<p class="sub">Kéo <b>⠿</b> để sắp xếp · Chỉnh sửa → nhấn <b>💾 Lưu</b> để đồng bộ ngay</p>
 <div id="cardList" class="cards"></div>
 <div class="bottom">
   <button class="btn btn-add" onclick="addBLV()">+ Thêm</button>
@@ -57,21 +60,82 @@ var WORKER_PASS=localStorage.getItem('blv_pass')||'socolive2026';
 var REPO='akanji688-ux/socoliveblv-wc2026';
 var TOKEN=localStorage.getItem('gh_tok')||'';
 var blvData=[];
+var dragSrcIdx=-1;
+
+function initDrag(){
+  var list=document.getElementById('cardList');
+  list.querySelectorAll('.card').forEach(function(card){
+    var handle=card.querySelector('.drag-handle');
+    var idx=parseInt(card.dataset.idx);
+
+    // Desktop
+    handle.addEventListener('mousedown',function(){card.setAttribute('draggable','true');});
+    card.addEventListener('dragstart',function(e){
+      dragSrcIdx=idx;card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    card.addEventListener('dragend',function(){
+      card.removeAttribute('draggable');card.classList.remove('dragging');
+      list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
+    });
+    card.addEventListener('dragover',function(e){
+      e.preventDefault();
+      list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop',function(e){
+      e.preventDefault();
+      var toIdx=parseInt(card.dataset.idx);
+      if(dragSrcIdx<0||dragSrcIdx===toIdx)return;
+      var moved=blvData.splice(dragSrcIdx,1)[0];
+      blvData.splice(toIdx,0,moved);
+      dragSrcIdx=-1;
+      renderCards();
+    });
+
+    // Touch
+    var tStartY=0,tClone=null,tIdx=-1,tCard=null;
+    handle.addEventListener('touchstart',function(e){
+      tIdx=idx;tCard=card;tStartY=e.touches[0].clientY;
+      card.classList.add('dragging');
+      var r=card.getBoundingClientRect();
+      tClone=card.cloneNode(true);
+      tClone.style.cssText='position:fixed;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;opacity:.85;z-index:9999;pointer-events:none;border:2px solid #FFD700;border-radius:8px;background:#1a1040;';
+      document.body.appendChild(tClone);
+      e.preventDefault();
+    },{passive:false});
+    handle.addEventListener('touchmove',function(e){
+      if(!tClone)return;
+      var dy=e.touches[0].clientY-tStartY;
+      tClone.style.top=(tCard.getBoundingClientRect().top+dy)+'px';
+      var el=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);
+      list.querySelectorAll('.card').forEach(function(c){c.classList.remove('drag-over');});
+      if(el){var tc=el.closest('.card');if(tc&&tc!==tCard)tc.classList.add('drag-over');}
+      e.preventDefault();
+    },{passive:false});
+    handle.addEventListener('touchend',function(){
+      if(tClone){tClone.remove();tClone=null;}
+      if(tCard)tCard.classList.remove('dragging');
+      var ov=list.querySelector('.card.drag-over');
+      if(ov){
+        var toIdx=parseInt(ov.dataset.idx);
+        ov.classList.remove('drag-over');
+        if(tIdx>=0&&tIdx!==toIdx){
+          var moved=blvData.splice(tIdx,1)[0];
+          blvData.splice(toIdx,0,moved);
+          renderCards();
+        }
+      }
+      tIdx=-1;tCard=null;
+    });
+  });
+}
 
 function showStatus(type,msg){
-  var old=document.getElementById('toast-msg');
-  if(old)old.remove();
-  var t=document.createElement('div');
-  t.id='toast-msg';
-  t.className='toast '+type;
-  t.textContent=msg;
+  var old=document.getElementById('toast-msg');if(old)old.remove();
+  var t=document.createElement('div');t.id='toast-msg';t.className='toast '+type;t.textContent=msg;
   document.body.appendChild(t);
-  var dur=type==='ok'?3000:6000;
-  setTimeout(function(){
-    t.style.transition='opacity .4s';
-    t.style.opacity='0';
-    setTimeout(function(){if(t.parentNode)t.remove();},400);
-  },dur);
+  setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){if(t.parentNode)t.remove();},400);},(type==='ok'?3000:6000));
 }
 
 function esc(s){return (s||'').replace(/"/g,'&quot;');}
@@ -82,7 +146,8 @@ function addBLV(){blvData.push({name:'BLV Mới',img:'',nhom:'#',tele:'#',zalo:'
 function renderCards(){
   var html='';
   blvData.forEach(function(b,i){
-    html+='<div class="card" id="card-'+i+'">';
+    html+='<div class="card" id="card-'+i+'" data-idx="'+i+'">';
+    html+='<div class="drag-handle" title="Kéo để sắp xếp">⠿</div>';
     html+='<div class="card-left">';
     html+='<img id="preview-'+i+'" src="'+esc(b.img)+'" onerror="this.style.opacity=.2"/>';
     html+='<label class="btn-upload" for="file-'+i+'">📷 Đổi ảnh</label>';
@@ -103,6 +168,7 @@ function renderCards(){
     html+='</div></div></div>';
   });
   document.getElementById('cardList').innerHTML=html;
+  initDrag();
 }
 
 function previewImg(i,input){
@@ -121,7 +187,7 @@ function uploadImage(i,file,dataUrl){
   var path='image/BLV/'+file.name;
   showStatus('ok','Đang upload ảnh...');
   var h={'Accept':'application/vnd.github.v3+json'};
-  if(TOKEN) h['Authorization']='token '+TOKEN;
+  if(TOKEN)h['Authorization']='token '+TOKEN;
   fetch('https://api.github.com/repos/'+REPO+'/contents/'+path,{headers:h})
   .then(function(r){return r.ok?r.json():null;})
   .then(function(ex){
@@ -145,15 +211,11 @@ function saveOne(i){
   var btn=document.getElementById('savebtn-'+i);
   if(btn){btn.disabled=true;btn.textContent='Đang lưu...';}
   showStatus('ok','Đang lưu...');
-  fetch(WORKER_URL,{
-    method:'PUT',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+WORKER_PASS},
-    body:JSON.stringify({blvs:blvData})
-  })
+  fetch(WORKER_URL,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+WORKER_PASS},body:JSON.stringify({blvs:blvData})})
   .then(function(r){return r.json();})
   .then(function(d){
     if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}
-    if(d.ok){showStatus('ok','✅ Đã lưu! Index cập nhật ngay lập tức!');}
+    if(d.ok)showStatus('ok','✅ Đã lưu! Index cập nhật ngay lập tức!');
     else showStatus('err','Lỗi: '+(d.error||JSON.stringify(d)));
   })
   .catch(function(e){if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}showStatus('err','Lỗi: '+e.message);});
@@ -161,14 +223,10 @@ function saveOne(i){
 
 function saveAll(){
   showStatus('ok','Đang lưu...');
-  fetch(WORKER_URL,{
-    method:'PUT',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+WORKER_PASS},
-    body:JSON.stringify({blvs:blvData})
-  })
+  fetch(WORKER_URL,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+WORKER_PASS},body:JSON.stringify({blvs:blvData})})
   .then(function(r){return r.json();})
   .then(function(d){
-    if(d.ok){showStatus('ok','✅ Đã lưu! Index cập nhật ngay lập tức!');}
+    if(d.ok)showStatus('ok','✅ Đã lưu! Index cập nhật ngay lập tức!');
     else showStatus('err','Lỗi: '+(d.error||JSON.stringify(d)));
   })
   .catch(function(e){showStatus('err','Lỗi: '+e.message);});
@@ -177,10 +235,7 @@ function saveAll(){
 (function(){
   fetch(WORKER_URL)
   .then(function(r){return r.json();})
-  .then(function(d){
-    blvData=d.blvs||[];
-    renderCards();
-  })
+  .then(function(d){blvData=d.blvs||[];renderCards();})
   .catch(function(e){blvData=[];renderCards();showStatus('err','Không tải được dữ liệu: '+e.message);});
 })();
 </script>
