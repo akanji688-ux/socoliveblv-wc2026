@@ -176,7 +176,7 @@ function saveOne(i){
   .then(function(r){return r.json();})
   .then(function(d){
     if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}
-    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Site cập nhật sau ~1 phút.');}
+    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Index tự cập nhật sau ~10 giây.');}
     else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
   })
   .catch(function(e){if(btn){btn.disabled=false;btn.textContent='💾 Lưu';}showStatus('err','Lỗi: '+e.message);});
@@ -199,7 +199,7 @@ function saveAll(){
   })
   .then(function(r){return r.json();})
   .then(function(d){
-    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Site cập nhật sau ~1 phút.');}
+    if(d.content){fileSha=d.content.sha;showStatus('ok','✅ Đã lưu! Index tự cập nhật sau ~10 giây.');}
     else showStatus('err','Lỗi: '+(d.message||JSON.stringify(d)));
   })
   .catch(function(e){showStatus('err','Lỗi: '+e.message);});
