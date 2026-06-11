@@ -821,6 +821,24 @@ function selectDate(d){
   if(lt&&!lt.classList.contains('act'))showTab('lich');
 }
 
+// ===== ESPN → VN name mapping =====
+var ESPN_TO_VN={
+  'South Africa':'Nam Phi','South Korea':'Hàn Quốc','North Korea':'Triều Tiên',
+  'Czech Republic':'CH Séc','Czechia':'CH Séc',
+  'Bosnia and Herzegovina':'Bosnia','Bosnia-Herzegovina':'Bosnia',
+  'United States':'Mỹ','USA':'Mỹ',
+  'Australia':'Úc','Turkey':'Thổ Nhĩ Kỳ','Germany':'Đức',
+  'Ivory Coast':'Bờ Biển Ngà',"Cote d'Ivoire":'Bờ Biển Ngà',
+  'Netherlands':'Hà Lan','Japan':'Nhật Bản','Sweden':'Thụy Điển',
+  'Belgium':'Bỉ','Egypt':'Ai Cập','Spain':'Tây Ban Nha',
+  'France':'Pháp','Norway':'Na Uy','Austria':'Áo',
+  'Portugal':'Bồ Đào Nha','DR Congo':'CHDC Congo','Congo, DR':'CHDC Congo',
+  'England':'Anh','Morocco':'Marocco','Switzerland':'Thụy Sĩ',
+  'Vietnam':'Việt Nam','Cape Verde':'Cabo Verde',
+  'Scotland':'Scotland'
+};
+function espnToVN(n){return ESPN_TO_VN[n]||n;}
+
 // ===== ESPN DATA LOOKUP by team names (searches WC_ESPN first) =====
 function getESPNData(name1, name2){
   var pools=[WC_ESPN,TODAY_MATCHES];
@@ -828,7 +846,7 @@ function getESPNData(name1, name2){
     var pool=pools[p];
     for(var i=0;i<pool.length;i++){
       var em=pool[i];
-      var en1=parseTeam(em.d1).name,en2=parseTeam(em.d2).name;
+      var en1=espnToVN(parseTeam(em.d1).name),en2=espnToVN(parseTeam(em.d2).name);
       if((en1===name1&&en2===name2)||(en1===name2&&en2===name1))return em;
     }
   }
