@@ -755,7 +755,7 @@ function applyUpdate(newMatches){
   var ind=document.getElementById('liveIndicator');
   if(ind)ind.style.display=hasLive?'inline-block':'none';
   clearInterval(liveTimer);
-  liveTimer=setInterval(function(){fetchBD24H();},30000);
+  liveTimer=setInterval(function(){fetchBD24H();},15000);
 }
 
 function refreshLiveScores(manual){
@@ -1223,20 +1223,38 @@ function fetchBD24H(){
   if(bdRefreshing) return;
   bdRefreshing=true;
 
-  // Single reliable proxy
-  var target='https://bongda24h.vn/bong-da/lich-thi-dau.html';
-  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(target),{cache:'no-store'})
-    .then(function(r){return r.ok?r.text():Promise.reject();})
-    .then(function(txt){
-      bdRefreshing=false;
-      var m=parseBD24H(txt);
-      if(m&&m.length>0){
-        TODAY_MATCHES=m;
-        ALL_MATCHES=TODAY_MATCHES.concat(MATCHES.filter(function(x){return !isFake(x);}));
-        buildFeaturedCards();
-      }
+  // Fetch World Cup live scores from ESPN in parallel with bongda24h
+  var wcPromise=fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard',{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var wc=[];
+      (d.events||[]).forEach(function(ev){
+        var m=parseESPNEvent(ev,{id:'fifa.world',name:'World Cup 2026',flag:'🏆'});
+        if(m)wc.push(m);
+      });
+      return wc;
     })
-    .catch(function(){bdRefreshing=false;});
+    .catch(function(){return[];});
+
+  var target='https://bongda24h.vn/bong-da/lich-thi-dau.html';
+  var bdPromise=fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(target),{cache:'no-store'})
+    .then(function(r){return r.ok?r.text():Promise.reject();})
+    .then(function(txt){return parseBD24H(txt)||[];})
+    .catch(function(){return[];});
+
+  Promise.all([wcPromise,bdPromise]).then(function(res){
+    bdRefreshing=false;
+    var combined=res[0].concat(res[1]);
+    if(combined.length>0){
+      TODAY_MATCHES=combined;
+      ALL_MATCHES=TODAY_MATCHES.concat(MATCHES.filter(function(x){return !isFake(x);}));
+      buildFeaturedCards();
+    }
+    // Speed up polling when WC match is live
+    var hasLive=res[0].some(function(m){return m.status==='live';});
+    var ind=document.getElementById('liveIndicator');
+    if(ind)ind.style.display=hasLive?'inline-block':'none';
+  }).catch(function(){bdRefreshing=false;});
   setTimeout(function(){bdRefreshing=false;},10000);
 }
 
@@ -1251,7 +1269,7 @@ addDragScroll('dateNav');
 buildDateNav();
 renderLich();
 renderGroups();
-setInterval(function(){fetchBD24H();},30000);
+setInterval(function(){fetchBD24H();},15000);
 
 
 // ===== BANNER BUTTON COLOR FLASH =====
