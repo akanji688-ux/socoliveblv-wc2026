@@ -1377,38 +1377,38 @@ document.addEventListener('click', function(e){
     .then(function(r){return r.json();})
     .then(function(d){renderBLV(d.blvs||[]);})
     .catch(function(){renderBLV([]);});
-  // Infinite scroll (3 sets: clone + orig + clone)
+  // Infinite card-by-card scroll (3 sets: clone + orig + clone)
   var el=document.getElementById('blvCards');
   if(el){
     var origCards=Array.from(el.children);
-    // Prepend clone before
+    var n=origCards.length;
     var frag=document.createDocumentFragment();
     origCards.forEach(function(c){frag.appendChild(c.cloneNode(true));});
     el.insertBefore(frag,el.firstChild);
-    // Append clone after
     origCards.forEach(function(c){el.appendChild(c.cloneNode(true));});
-    var setW=0,paused=false,isDown=false,startX,startScroll;
-    function initScroll(){
-      setW=el.scrollWidth/3;
-      el.scrollLeft=setW; // start at middle set
-    }
+    var CARD_W=216,setW=0,paused=false,isDown=false,startX,startScroll,animating=false;
+    function init(){setW=el.scrollWidth/3;el.scrollLeft=setW;}
     function clamp(){
-      if(setW===0)return;
       if(el.scrollLeft>=setW*2) el.scrollLeft-=setW;
-      else if(el.scrollLeft<=0) el.scrollLeft+=setW;
+      else if(el.scrollLeft<setW-CARD_W*n) el.scrollLeft+=setW;
     }
-    function tick(){
-      if(setW===0){initScroll();requestAnimationFrame(tick);return;}
-      if(!paused){el.scrollLeft+=0.6;clamp();}
-      requestAnimationFrame(tick);
+    function nextCard(){
+      if(paused||animating)return;
+      animating=true;
+      var target=el.scrollLeft+CARD_W;
+      el.scrollTo({left:target,behavior:'smooth'});
+      setTimeout(function(){clamp();animating=false;},450);
     }
-    setTimeout(function(){initScroll();requestAnimationFrame(tick);},100);
+    setTimeout(function(){
+      init();
+      setInterval(nextCard,2500);
+    },150);
     el.addEventListener('mouseenter',function(){paused=true;});
-    el.addEventListener('mouseleave',function(){paused=false;el.style.cursor='grab';});
+    el.addEventListener('mouseleave',function(){paused=false;});
     el.addEventListener('touchstart',function(){paused=true;},{passive:true});
-    el.addEventListener('touchend',function(){clamp();paused=false;},{passive:true});
+    el.addEventListener('touchend',function(){setTimeout(function(){clamp();paused=false;},400);},{passive:true});
     el.addEventListener('mousedown',function(e){isDown=true;paused=true;startX=e.pageX;startScroll=el.scrollLeft;el.style.cursor='grabbing';e.preventDefault();});
-    document.addEventListener('mouseup',function(){if(!isDown)return;isDown=false;clamp();paused=false;el.style.cursor='grab';});
+    document.addEventListener('mouseup',function(){if(!isDown)return;isDown=false;setTimeout(function(){clamp();paused=false;},400);el.style.cursor='grab';});
     document.addEventListener('mousemove',function(e){if(!isDown)return;el.scrollLeft=startScroll-(e.pageX-startX);},{passive:true});
   }
 })();
