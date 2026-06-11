@@ -971,7 +971,7 @@ function buildFeaturedCards(){
   var tmrD=new Date(todayD.getTime()+86400000);
   var tmrS=String(tmrD.getDate()).padStart(2,'0')+'/'+String(tmrD.getMonth()+1).padStart(2,'0');
   function isRecent(m){return !m.d||(m.d===todayS||m.d===tmrS);}
-  function isWC(m){var id=String(m.id);return !id.startsWith('bd_')&&!id.startsWith('e_');}
+  function isWC(m){var id=String(m.id);return id.startsWith('e_');}
   var live   = ALL_MATCHES.filter(function(m){return m.status==='live'&&isRecent(m)&&isWC(m);});
   var done   = ALL_MATCHES.filter(function(m){return m.status==='done'&&isRecent(m)&&isWC(m);})
                .sort(function(a,b){return b.t.localeCompare(a.t);});
