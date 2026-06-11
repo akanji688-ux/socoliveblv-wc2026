@@ -10,9 +10,15 @@ body{font-family:'Segoe UI',sans-serif;background:#0D0A2A;color:#eee;min-height:
 .wrap{max-width:680px;margin:0 auto;}
 h1{font-size:18px;font-weight:700;color:#FFD700;margin-bottom:3px;}
 .sub{font-size:11px;color:#666;margin-bottom:16px;}
-.status{padding:7px 12px;border-radius:6px;font-size:12px;display:none;margin-bottom:12px;}
-.status.ok{background:rgba(0,166,81,.2);border:1px solid #00A651;color:#00ff88;display:block;}
-.status.err{background:rgba(204,0,0,.2);border:1px solid #CC0000;color:#ff6666;display:block;}
+.status{display:none;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);min-width:280px;max-width:90vw;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:600;text-align:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.6);animation:slideUp .3s ease;}
+.toast.ok{background:#00A651;color:#fff;border:2px solid #00d466;}
+.toast.err{background:#CC0000;color:#fff;border:2px solid #ff4444;}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);min-width:280px;max-width:90vw;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;text-align:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideUp .3s ease;}
+.toast.ok{background:#00A651;color:#fff;border:2px solid #00d466;}
+.toast.err{background:#CC0000;color:#fff;border:2px solid #ff4444;}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
 .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;display:flex;gap:10px;}
 .card-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -57,9 +63,19 @@ var FILE='blv-data.json';
 var blvData=[],fileSha='';
 
 function showStatus(type,msg){
-  var el=document.getElementById('status');
-  el.className='status '+type; el.textContent=msg;
-  if(type==='ok') setTimeout(function(){el.style.display='none';},4000);
+  var old=document.getElementById('toast-msg');
+  if(old)old.remove();
+  var t=document.createElement('div');
+  t.id='toast-msg';
+  t.className='toast '+type;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  var dur=type==='ok'?3000:6000;
+  setTimeout(function(){
+    t.style.transition='opacity .4s';
+    t.style.opacity='0';
+    setTimeout(function(){if(t.parentNode)t.remove();},400);
+  },dur);
 }
 function esc(s){return (s||'').replace(/"/g,'&quot;');}
 function upd(i,key,val){blvData[i][key]=val;if(key==='name')document.querySelector('#card-'+i+' .card-name').textContent=val||'';}
