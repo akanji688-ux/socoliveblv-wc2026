@@ -708,6 +708,31 @@ function addDragScroll(id){
 var ESPN_BASE='https://site.api.espn.com/apis/site/v2/sports/soccer/';
 var ESPN_LEAGUES=[{id:'vnm.1',name:'V.League 1',flag:'🇻🇳'},{id:'eng.1',name:'Ngoại Hạng Anh',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{id:'ita.1',name:'Serie A',flag:'🇮🇹'},{id:'esp.1',name:'La Liga',flag:'🇪🇸'},{id:'fra.1',name:'Ligue 1',flag:'🇫🇷'},{id:'ger.1',name:'Bundesliga',flag:'🇩🇪'},{id:'ned.1',name:'Eredivisie',flag:'🇳🇱'}];
 
+// ===== ESPN TEAM NAME → TIẾNG VIỆT =====
+var ESPN_VN={
+  'Mexico':'Mexico','South Africa':'Nam Phi','South Korea':'Hàn Quốc','Czechia':'CH Séc',
+  'Canada':'Canada','Bosnia and Herzegovina':'Bosnia','Bosnia-Herzegovina':'Bosnia',
+  'United States':'Mỹ','USA':'Mỹ','Paraguay':'Paraguay','Argentina':'Argentina',
+  'Brazil':'Brazil','France':'Pháp','England':'Anh','Germany':'Đức','Spain':'Tây Ban Nha',
+  'Portugal':'Bồ Đào Nha','Netherlands':'Hà Lan','Belgium':'Bỉ','Uruguay':'Uruguay',
+  'Croatia':'Croatia','Switzerland':'Thụy Sĩ','Morocco':'Marocco','Senegal':'Senegal',
+  'Japan':'Nhật Bản','Australia':'Úc','Iran':'Iran','Saudi Arabia':'Saudi Arabia',
+  'Qatar':'Qatar','Ecuador':'Ecuador','Tunisia':'Tunisia','Ghana':'Ghana',
+  "Ivory Coast":"Bờ Biển Ngà","Côte D'Ivoire":"Bờ Biển Ngà","Cote d'Ivoire":"Bờ Biển Ngà",
+  'Algeria':'Algeria','Egypt':'Ai Cập','Norway':'Na Uy','Sweden':'Thụy Điển',
+  'Turkey':'Thổ Nhĩ Kỳ','Austria':'Áo','Scotland':'Scotland','Jordan':'Jordan',
+  'Iraq':'Iraq','Uzbekistan':'Uzbekistan','New Zealand':'New Zealand',
+  'Colombia':'Colombia','Haiti':'Haiti','Panama':'Panama','Curaçao':'Curacao','Curacao':'Curacao',
+  'Cabo Verde':'Cabo Verde','Cape Verde':'Cabo Verde',
+  'DR Congo':'CHDC Congo','Congo DR':'CHDC Congo','Democratic Republic of the Congo':'CHDC Congo',
+  'Korea Republic':'Hàn Quốc','Republic of Korea':'Hàn Quốc',
+  'Czech Republic':'CH Séc','Czechia':'CH Séc',
+  'USA':'Mỹ','United States':'Mỹ','US':'Mỹ',
+  'Netherlands':'Hà Lan','Holland':'Hà Lan',
+  'Ivory Coast':'Bờ Biển Ngà','Côte d\'Ivoire':'Bờ Biển Ngà'
+};
+function vnName(n){ return ESPN_VN[n]||n; }
+
 function parseESPNEvent(ev,lg){
   try{
     var comp=ev.competitions[0],comps=comp.competitors||[];
@@ -734,8 +759,8 @@ function parseESPNEvent(ev,lg){
     });
     return{
       id:'e_'+ev.id,r:'today',league:lg.name,d:dd+'/'+mm,t:hh+':'+mn,
-      d1:lg.flag+' '+home.team.displayName,
-      d2:lg.flag+' '+away.team.displayName,
+      d1:lg.flag+' '+vnName(home.team.displayName),
+      d2:lg.flag+' '+vnName(away.team.displayName),
       logo1:home.team.logo||'',
       logo2:away.team.logo||'',
       homeTeamId:home.team.id,
