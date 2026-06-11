@@ -1177,25 +1177,42 @@ var bdRefreshing=false;
 function fetchBD24H(){
   if(bdRefreshing) return;
   bdRefreshing=true;
-  // Compute today in Vietnam time (UTC+7) → YYYYMMDD
-  var vnNow=new Date(Date.now()+7*3600000);
-  var ds=String(vnNow.getUTCFullYear())+String(vnNow.getUTCMonth()+1).padStart(2,'0')+String(vnNow.getUTCDate()).padStart(2,'0');
-  fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates='+ds,{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      bdRefreshing=false;
-      var matches=(d.events||[]).map(function(ev){
-        return parseESPNEvent(ev,{id:'fifa.world',name:'World Cup 2026',flag:'🏆'});
-      }).filter(Boolean);
-      TODAY_MATCHES=matches;
-      ALL_MATCHES=TODAY_MATCHES.concat(MATCHES.filter(function(x){return !isFake(x);}));
-      buildFeaturedCards();
-      var hasLive=matches.some(function(m){return m.status==='live';});
-      var ind=document.getElementById('liveIndicator');
-      if(ind)ind.style.display=hasLive?'inline-block':'none';
-    })
-    .catch(function(){bdRefreshing=false;});
-  setTimeout(function(){bdRefreshing=false;},10000);
+  // Fetch both yesterday UTC and today UTC to catch early-morning VN matches
+  // e.g. 02:00 VN = 19:00 UTC previous day
+  var utcNow=new Date();
+  function utcDs(d){ return String(d.getUTCFullYear())+String(d.getUTCMonth()+1).padStart(2,'0')+String(d.getUTCDate()).padStart(2,'0'); }
+  var dsToday=utcDs(utcNow);
+  var yesterday=new Date(utcNow.getTime()-86400000);
+  var dsYesterday=utcDs(yesterday);
+  var lg={id:'fifa.world',name:'World Cup 2026',flag:'🏆'};
+  var base='https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=';
+  Promise.all([
+    fetch(base+dsYesterday,{cache:'no-store'}).then(function(r){return r.json();}).catch(function(){return {events:[]};}),
+    fetch(base+dsToday,{cache:'no-store'}).then(function(r){return r.json();}).catch(function(){return {events:[]};})
+  ]).then(function(results){
+    bdRefreshing=false;
+    var seen={};
+    var matches=[];
+    [].concat(results[0].events||[],results[1].events||[]).forEach(function(ev){
+      if(seen[ev.id])return; seen[ev.id]=true;
+      var m=parseESPNEvent(ev,lg);
+      if(m)matches.push(m);
+    });
+    // Sort: live first, then by time
+    matches.sort(function(a,b){
+      var order={live:0,upcoming:1,done:2};
+      var od=(order[a.status]||1)-(order[b.status]||1);
+      if(od!==0)return od;
+      return (a.t||'').localeCompare(b.t||'');
+    });
+    TODAY_MATCHES=matches;
+    ALL_MATCHES=TODAY_MATCHES.concat(MATCHES.filter(function(x){return !isFake(x);}));
+    buildFeaturedCards();
+    var hasLive=matches.some(function(m){return m.status==='live';});
+    var ind=document.getElementById('liveIndicator');
+    if(ind)ind.style.display=hasLive?'inline-block':'none';
+  }).catch(function(){bdRefreshing=false;});
+  setTimeout(function(){bdRefreshing=false;},15000);
 }
 
 
