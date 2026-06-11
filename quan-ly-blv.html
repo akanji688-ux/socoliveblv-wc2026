@@ -57,11 +57,24 @@ input[type=file]{display:none;}
 </div>
 
 <script>
-var TOKEN=['ghp_7IjW6a','joC4YWFH3IsxPzS','u0Wide4gt1V48vP'].join('');
+var TOKEN=localStorage.getItem('gh_tok')||'';
 var REPO='akanji688-ux/socoliveblv-wc2026';
 var FILE='blv-data.json';
 var blvData=[],fileSha='';
 
+function saveToken(){
+  var t=document.getElementById('tokenInput').value.trim();
+  if(!t){showStatus('err','Vui lòng nhập token!');return;}
+  localStorage.setItem('gh_tok',t);
+  TOKEN=t;
+  document.getElementById('tokenBar').style.borderColor='rgba(0,166,81,.5)';
+  showStatus('ok','✅ Token đã lưu!');
+}
+// Load saved token
+(function(){
+  var t=localStorage.getItem('gh_tok');
+  if(t){TOKEN=t;document.getElementById('tokenBar').style.borderColor='rgba(0,166,81,.3)';}
+})();
 function showStatus(type,msg){
   var old=document.getElementById('toast-msg');
   if(old)old.remove();
