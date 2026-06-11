@@ -519,7 +519,11 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
     <h2 style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin:0;">BÌNH LUẬN VIÊN</h2>
     <span style="font-size:10px;font-weight:800;background:#CC0000;color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:1px;">SOCOLIVE BLV</span>
   </div>
-  <div id="blvCards" style="display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;flex-wrap:nowrap;width:100%;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;"></div>
+  <div style="position:relative;">
+    <button id="blvPrev" onclick="blvNav(-1)" style="position:absolute;left:-14px;top:50%;transform:translateY(-50%);z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">&#8249;</button>
+    <div id="blvCards" style="display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;flex-wrap:nowrap;width:100%;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;"></div>
+    <button id="blvNext" onclick="blvNav(1)" style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">&#8250;</button>
+  </div>
 </div>
 
 <!-- TABS -->
@@ -1418,7 +1422,12 @@ function fetchBD24H(){
       }
       el.scrollLeft=COPIES*setW;
       if(_blvScrollTimer)clearInterval(_blvScrollTimer);
-      _blvScrollTimer=setInterval(nextCard,2500);
+      _blvScrollTimer=null;
+      window.blvNav=function(dir){
+        if(animating)return;
+        animating=true;
+        animateTo(el.scrollLeft+dir*CARD_W,300,function(){clamp();animating=false;});
+      };
       el.addEventListener('mouseenter',function(){paused=true;});
       el.addEventListener('mouseleave',function(){paused=false;});
       el.addEventListener('touchstart',function(){paused=true;},{passive:true});
