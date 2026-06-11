@@ -436,6 +436,46 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
 }
 @media(max-width:768px){.cd-phat-song-btn{display:none !important;}}
 @media(max-width:768px){.cdstrip{display:none !important;}}
+
+/* ===== BLV SECTION ===== */
+.blv-wrap{background:linear-gradient(135deg,rgba(10,6,30,.95) 0%,rgba(20,10,50,.9) 100%);border-top:2px solid rgba(255,215,0,.2);border-bottom:2px solid rgba(255,215,0,.15);padding:14px 20px;}
+.blv-inner{max-width:1300px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.blv-left{flex:1;min-width:0;}
+.blv-title-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.blv-icon{font-size:18px;}
+.blv-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#FFD700;letter-spacing:2px;text-transform:uppercase;}
+.blv-badge{font-size:9px;font-weight:800;background:var(--red);color:#fff;padding:2px 7px;border-radius:3px;letter-spacing:1px;}
+.blv-list{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
+.blv-list::-webkit-scrollbar{display:none;}
+.blv-card{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);transition:all .2s;min-width:72px;}
+.blv-card:hover{background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.3);}
+.blv-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,215,0,.4);background:rgba(255,255,255,.1);}
+.blv-avatar-placeholder{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1844C8,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,215,0,.4);}
+.blv-name{font-size:10px;font-weight:700;color:#ddd;text-align:center;white-space:nowrap;letter-spacing:.3px;}
+.blv-role{font-size:9px;color:var(--wc-green);letter-spacing:.5px;}
+/* Right: group buttons */
+.blv-right{flex-shrink:0;}
+.blv-group-title{font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;text-align:center;}
+.blv-group-btns{display:flex;gap:8px;}
+.blv-btn{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;text-decoration:none;transition:all .2s;min-width:130px;}
+.blv-btn:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.blv-btn-icon{font-size:20px;flex-shrink:0;}
+.blv-btn-text{display:flex;flex-direction:column;}
+.blv-btn-sub{font-size:9px;opacity:.8;letter-spacing:.5px;}
+.blv-btn-text > span:last-child{font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;}
+.blv-btn-group{background:linear-gradient(135deg,#1844C8,#3B5BDB);color:#fff;}
+.blv-btn-tele{background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;}
+.blv-btn-zalo{background:linear-gradient(135deg,#0068FF,#0098FF);color:#fff;}
+@media(max-width:768px){
+  .blv-inner{flex-direction:column;align-items:flex-start;gap:14px;}
+  .blv-right{width:100%;}
+  .blv-group-btns{justify-content:center;}
+  .blv-btn{min-width:100px;padding:8px 10px;}
+  .blv-btn-text > span:last-child{font-size:11px;}
+}
+@media(max-width:480px){
+  .blv-btn{min-width:0;flex:1;}
+}
 </style>
 </head>
 <body>
@@ -508,6 +548,39 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
     <div class="promo-banner-btns" style="display:flex;gap:14px;">
       <a href="https://antlive210.com/" target="_blank" class="banner-btn1" data-ga="btn_banner_xem_tt">▶ XEM TRỰC TIẾP</a>
       <a href="https://8x8899.com/" target="_blank" class="banner-btn2" data-ga="btn_banner_dang_ky">✦ ĐĂNG KÝ NGAY</a>
+    </div>
+  </div>
+</div>
+
+<!-- BLV SECTION -->
+<div class="blv-wrap">
+  <div class="blv-inner">
+    <div class="blv-left">
+      <div class="blv-title-row">
+        <span class="blv-icon">🎙️</span>
+        <span class="blv-title">BÌNH LUẬN VIÊN</span>
+        <span class="blv-badge">SOCOLIVE BLV</span>
+      </div>
+      <div class="blv-list" id="blvList">
+        <!-- BLV cards rendered here -->
+      </div>
+    </div>
+    <div class="blv-right">
+      <div class="blv-group-title">THAM GIA CỘNG ĐỒNG</div>
+      <div class="blv-group-btns">
+        <a href="#" class="blv-btn blv-btn-group" target="_blank" data-ga="btn_tham_gia_nhom">
+          <span class="blv-btn-icon">👥</span>
+          <span class="blv-btn-text"><span class="blv-btn-sub">Cộng đồng</span>THAM GIA NHÓM</span>
+        </a>
+        <a href="#" class="blv-btn blv-btn-tele" target="_blank" data-ga="btn_telegram">
+          <span class="blv-btn-icon">✈️</span>
+          <span class="blv-btn-text"><span class="blv-btn-sub">Telegram</span>KÊNH TELEGRAM</span>
+        </a>
+        <a href="#" class="blv-btn blv-btn-zalo" target="_blank" data-ga="btn_zalo">
+          <span class="blv-btn-icon">💬</span>
+          <span class="blv-btn-text"><span class="blv-btn-sub">Zalo</span>NHÓM ZALO</span>
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -1335,6 +1408,29 @@ document.addEventListener('click', function(e){
 });
 </script>
 <script>
+
+// ===== BLV SECTION =====
+(function(){
+  var blvs = [
+    {name:'BLV Anh Quân', role:'WC 2026', emoji:'🎙️'},
+    {name:'BLV Minh Trí', role:'WC 2026', emoji:'⚽'},
+    {name:'BLV Tuấn Anh', role:'WC 2026', emoji:'🏆'},
+    {name:'BLV Trung Hiếu', role:'WC 2026', emoji:'🎯'},
+    {name:'BLV Nam Khánh', role:'WC 2026', emoji:'🌟'},
+  ];
+  var list = document.getElementById('blvList');
+  if(!list) return;
+  var html = '';
+  blvs.forEach(function(b){
+    html += '<div class="blv-card">';
+    html += '<div class="blv-avatar-placeholder">'+b.emoji+'</div>';
+    html += '<div class="blv-name">'+b.name+'</div>';
+    html += '<div class="blv-role">'+b.role+'</div>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+})();
+
 (function(){
   function initCarousel(){
     var grid = document.getElementById('featuredCards');
