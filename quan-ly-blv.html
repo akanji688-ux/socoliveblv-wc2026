@@ -70,11 +70,11 @@ function saveToken(){
   document.getElementById('tokenBar').style.borderColor='rgba(0,166,81,.5)';
   showStatus('ok','✅ Token đã lưu!');
 }
-// Load saved token
-(function(){
+// Load saved token on DOM ready
+document.addEventListener('DOMContentLoaded',function(){
   var t=localStorage.getItem('gh_tok');
-  if(t){TOKEN=t;document.getElementById('tokenBar').style.borderColor='rgba(0,166,81,.3)';}
-})();
+  if(t){TOKEN=t;var bar=document.getElementById('tokenBar');if(bar)bar.style.borderColor='rgba(0,166,81,.3)';}
+});
 function showStatus(type,msg){
   var old=document.getElementById('toast-msg');
   if(old)old.remove();
