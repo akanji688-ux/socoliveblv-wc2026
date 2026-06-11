@@ -124,14 +124,22 @@ function uploadImage(i,file,dataUrl){
 }
 
 function saveAll(){
-  showStatus('ok','Đang lưu...');
-  var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
-  var body={message:'Admin: cập nhật BLV',content:b64};
-  if(fileSha)body.sha=fileSha;
+  showStatus('ok','Đang lấy SHA mới nhất...');
+  // Always fetch latest SHA before saving to avoid conflicts
   fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
-    method:'PUT',
-    headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-    body:JSON.stringify(body)
+    headers:{'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json','Cache-Control':'no-cache'}
+  })
+  .then(function(r){return r.json();})
+  .then(function(latest){
+    fileSha=latest.sha||fileSha;
+    showStatus('ok','Đang lưu...');
+    var b64=btoa(unescape(encodeURIComponent(JSON.stringify({blvs:blvData},null,2))));
+    var body={message:'Admin: cập nhật BLV',content:b64,sha:fileSha};
+    return fetch('https://api.github.com/repos/'+REPO+'/contents/'+FILE,{
+      method:'PUT',
+      headers:{'Authorization':'token '+TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify(body)
+    });
   })
   .then(function(r){return r.json();})
   .then(function(d){
