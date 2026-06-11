@@ -720,10 +720,28 @@ function parseESPNEvent(ev,lg){
     var dt=new Date(ev.date),vnMs=dt.getTime()+7*3600000,vnD=new Date(vnMs);
     var dd=String(vnD.getUTCDate()).padStart(2,'0'),mm=String(vnD.getUTCMonth()+1).padStart(2,'0');
     var hh=String(vnD.getUTCHours()).padStart(2,'0'),mn=String(vnD.getUTCMinutes()).padStart(2,'0');
-    if(home.team.logo)ESPN_LOGOS_CACHE[home.team.displayName]=home.team.logo;
-    if(away.team.logo)ESPN_LOGOS_CACHE[away.team.displayName]=away.team.logo;
     var clock='';try{clock=comp.status.displayClock||'';}catch(e){}
-    return{id:'e_'+ev.id,r:'today',league:lg.name,d:dd+'/'+mm,t:hh+':'+mn,d1:lg.flag+' '+home.team.displayName,d2:lg.flag+' '+away.team.displayName,score:score,status:status,clock:clock,ch:null};
+    // Parse goal scorers + minutes
+    var goals=[];
+    (comp.details||[]).forEach(function(det){
+      if(det.type&&det.type.text==='Goal'&&det.athletesInvolved&&det.athletesInvolved.length){
+        goals.push({
+          name:det.athletesInvolved[0].displayName,
+          minute:det.clock?det.clock.displayValue:'',
+          teamId:det.team?det.team.id:''
+        });
+      }
+    });
+    return{
+      id:'e_'+ev.id,r:'today',league:lg.name,d:dd+'/'+mm,t:hh+':'+mn,
+      d1:lg.flag+' '+home.team.displayName,
+      d2:lg.flag+' '+away.team.displayName,
+      logo1:home.team.logo||'',
+      logo2:away.team.logo||'',
+      homeTeamId:home.team.id,
+      score:score,status:status,clock:clock,ch:null,
+      goals:goals
+    };
   }catch(e){return null;}
 }
 
@@ -983,7 +1001,6 @@ function buildFeaturedCards(){
           +' onerror="this.remove()">';
       return '<span style="font-size:36px;line-height:1;">'+flag+'</span>';
     }
-    // Use logo1/logo2 from bongda24h if available, else ESPN
     var logo1=m.logo1||getTeamLogoUrl(t1.name);
     var logo2=m.logo2||getTeamLogoUrl(t2.name);
     return '<div class="fc-card '+cc+'">'
@@ -992,11 +1009,24 @@ function buildFeaturedCards(){
         +'<div class="fc-ch-badge">'+ch+'</div>'
         +'<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-around;width:100%;padding:0 8px;">'
           +'<div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:110px;">'+mkLogo(logo1,t1.flag,t1.name)+'<span style="font-size:13px;font-weight:700;color:#fff;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9);">'+abbr(t1.name)+'</span></div>'
-          +'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span class="'+scCls+'">'+sc+'</span>'+(isLive&&clk?'<span style="font-size:9px;color:#ff7777;font-weight:700;background:rgba(204,0,0,.25);padding:2px 6px;border-radius:10px;">⏱ '+clk+'</span>':'')+'</div>'
+          +'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">'
+          +'<span class="'+scCls+'">'+sc+'</span>'
+          +(isLive&&clk?'<span style="font-size:9px;color:#ff7777;font-weight:700;background:rgba(204,0,0,.25);padding:2px 6px;border-radius:10px;">⏱ '+clk+'</span>':'')
+          +'</div>'
           +'<div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:110px;">'+mkLogo(logo2,t2.flag,t2.name)+'<span style="font-size:13px;font-weight:700;color:#fff;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9);">'+abbr(t2.name)+'</span></div>'
         +'</div>'
         +'<div style="position:relative;z-index:2;">'+actBtn+'</div>'
       +'</div>'
+      +(((isLive||isDone)&&m.goals&&m.goals.length)
+        ?'<div style="display:flex;justify-content:space-between;padding:5px 10px 0;width:100%;box-sizing:border-box;">'
+          +'<div style="width:48%;font-size:9px;color:rgba(255,255,255,.75);line-height:1.6;text-align:left;">'
+          +(m.goals.filter(function(g){return g.teamId===m.homeTeamId;}).map(function(g){return'⚽ <b>'+g.name+'</b> '+g.minute;}).join('<br>'))
+          +'</div>'
+          +'<div style="width:48%;font-size:9px;color:rgba(255,255,255,.75);line-height:1.6;text-align:right;">'
+          +(m.goals.filter(function(g){return g.teamId!==m.homeTeamId;}).map(function(g){return g.minute+' <b>'+g.name+'</b> ⚽';}).join('<br>'))
+          +'</div>'
+        +'</div>'
+        :'')
       +'<div class="fc-info"><div>'
         +'<div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px;">'+lg+'</div>'
         +'<div style="font-size:12px;font-weight:600;color:var(--wc-green);">'+m.d+' · '+m.t+'</div>'
@@ -1117,144 +1147,28 @@ function showGroupDetail(k){
 
 
 
-// ===== FEATURED HOT MATCHES (từ bongda24h.vn) - ESPN CDN logos =====
-var FEATURED_UPCOMING = [
-  {
-    id:'hot1', league:'Ngoại Hạng Anh - Vòng 37',
-    d:'19/05', t:'02:00',
-    d1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Arsenal', d2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Burnley',
-    score:'1 - 0', status:'done', ch:'Socolive',
-    logo1:'https://a.espncdn.com/i/teamlogos/soccer/500/359.png',
-    logo2:'https://a.espncdn.com/i/teamlogos/soccer/500/379.png',
-    bg1:'linear-gradient(135deg,#EF0107,#063672)',
-    bg2:'linear-gradient(135deg,#6C1D45,#99D6EA)'
-  },
-  {
-    id:'hot2', league:'Ngoại Hạng Anh - Vòng 37',
-    d:'20/05', t:'01:30',
-    d1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Bournemouth', d2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Man City',
-    score:null, status:'upcoming', ch:'Socolive',
-    logo1:'https://a.espncdn.com/i/teamlogos/soccer/500/349.png',
-    logo2:'https://a.espncdn.com/i/teamlogos/soccer/500/382.png',
-    bg1:'linear-gradient(135deg,#DA291C,#000)',
-    bg2:'linear-gradient(135deg,#6CABDD,#1C2C5B)'
-  },
-  {
-    id:'hot3', league:'Ngoại Hạng Anh - Vòng 37',
-    d:'20/05', t:'02:15',
-    d1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Chelsea', d2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Tottenham',
-    score:null, status:'upcoming', ch:'Socolive',
-    logo1:'https://a.espncdn.com/i/teamlogos/soccer/500/363.png',
-    logo2:'https://a.espncdn.com/i/teamlogos/soccer/500/367.png',
-    bg1:'linear-gradient(135deg,#034694,#1E90FF)',
-    bg2:'linear-gradient(135deg,#132257,#fff)'
-  }
-];
-
-
-// Helper: build logo element from direct URL (bongda24h CDN)
-function buildMatchLogo(u,ff,n,s){
-  var sz=s==='lg'?68:50;
-  if(!u) return buildFlagWrap(n,ff);
-  return '<img src="'+u+'" alt="'+n
-    +'" width="'+sz+'" height="'+sz
-    +'" style="object-fit:contain;flex-shrink:0;'
-    +'filter:drop-shadow(0 3px 10px rgba(0,0,0,.7));"'
-    +' onerror="this.remove()">';
-}
-
-
-// ===== BONGDA24H LIVE FETCH =====
-var BDA_URL='https://bongda24h.vn/bong-da/lich-thi-dau.html';
-var BD_PROXY='https://api.allorigins.win/raw?url=';
-var bdTimer=null, bdRefreshing=false;
-
-function parseBD24H(htmlText){
-  var doc=new DOMParser().parseFromString(htmlText,'text/html');
-  var rows=doc.querySelectorAll('.f-row.matchdetail.hot');
-  var results=[];
-  rows.forEach(function(row,idx){
-    try{
-      // Use specific selectors (bongda24h DOM structure)
-      var timeEl=row.querySelector('.time');
-      var dateEl=row.querySelector('.date');
-      var scoreEl=row.querySelector('.soccer-scores');
-
-      var t=(timeEl?timeEl.textContent.trim():'00:00');
-      var d=(dateEl?dateEl.textContent.trim():'');
-      if(d){var dp=d.split('/');d=dp[0].padStart(2,'0')+'/'+dp[1].padStart(2,'0');}
-      else{var n=new Date();d=String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0');}
-
-      // Score: "1 - 1" or "vs"
-      var scoreText=(scoreEl?scoreEl.textContent.trim():'');
-      var score=scoreText.match(/^\d+\s*[-–]\s*\d+$/)?scoreText.replace(/\s+/g,' '):null;
-
-      // Status: check for "H1" "H2" indicators
-      var rawText=(row.textContent||'');
-      var status='upcoming';
-      if(rawText.indexOf('H1:')>-1||rawText.indexOf('H2:')>-1) status='live';
-      else if(score) status='done';
-
-      // Logos
-      var imgs=row.querySelectorAll('img[alt]');
-      var teamImgs=[];
-      imgs.forEach(function(img){
-        var alt=(img.alt||'').trim();
-        var src=img.getAttribute('data-src')||img.getAttribute('src')||'';
-        if(alt&&alt.length>1&&(src.indexOf('Medias')>-1||src.indexOf('icon')>-1)){
-          if(!src.startsWith('http')) src='https://static.bongda24h.vn'+src;
-          teamImgs.push({name:alt,src:src});
-        }
-      });
-      if(teamImgs.length<2) return;
-
-      results.push({
-        id:'bd_'+idx,r:'today',league:'Bóng Đá',d:d,t:t,
-        d1:'⚽ '+teamImgs[0].name,d2:'⚽ '+teamImgs[1].name,
-        score:score,status:status,ch:'Socolive',
-        logo1:teamImgs[0].src,logo2:teamImgs[1].src
-      });
-    }catch(e){}
-  });
-  return results;
-}
 
 function fetchBD24H(){
   if(bdRefreshing) return;
   bdRefreshing=true;
-
-  // Fetch World Cup live scores from ESPN in parallel with bongda24h
-  var wcPromise=fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard',{cache:'no-store'})
+  // Compute today in Vietnam time (UTC+7) → YYYYMMDD
+  var vnNow=new Date(Date.now()+7*3600000);
+  var ds=String(vnNow.getUTCFullYear())+String(vnNow.getUTCMonth()+1).padStart(2,'0')+String(vnNow.getUTCDate()).padStart(2,'0');
+  fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates='+ds,{cache:'no-store'})
     .then(function(r){return r.json();})
     .then(function(d){
-      var wc=[];
-      (d.events||[]).forEach(function(ev){
-        var m=parseESPNEvent(ev,{id:'fifa.world',name:'World Cup 2026',flag:'🏆'});
-        if(m)wc.push(m);
-      });
-      return wc;
-    })
-    .catch(function(){return[];});
-
-  var target='https://bongda24h.vn/bong-da/lich-thi-dau.html';
-  var bdPromise=fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(target),{cache:'no-store'})
-    .then(function(r){return r.ok?r.text():Promise.reject();})
-    .then(function(txt){return parseBD24H(txt)||[];})
-    .catch(function(){return[];});
-
-  Promise.all([wcPromise,bdPromise]).then(function(res){
-    bdRefreshing=false;
-    var combined=res[0].concat(res[1]);
-    if(combined.length>0){
-      TODAY_MATCHES=combined;
+      bdRefreshing=false;
+      var matches=(d.events||[]).map(function(ev){
+        return parseESPNEvent(ev,{id:'fifa.world',name:'World Cup 2026',flag:'🏆'});
+      }).filter(Boolean);
+      TODAY_MATCHES=matches;
       ALL_MATCHES=TODAY_MATCHES.concat(MATCHES.filter(function(x){return !isFake(x);}));
       buildFeaturedCards();
-    }
-    // Speed up polling when WC match is live
-    var hasLive=res[0].some(function(m){return m.status==='live';});
-    var ind=document.getElementById('liveIndicator');
-    if(ind)ind.style.display=hasLive?'inline-block':'none';
-  }).catch(function(){bdRefreshing=false;});
+      var hasLive=matches.some(function(m){return m.status==='live';});
+      var ind=document.getElementById('liveIndicator');
+      if(ind)ind.style.display=hasLive?'inline-block':'none';
+    })
+    .catch(function(){bdRefreshing=false;});
   setTimeout(function(){bdRefreshing=false;},10000);
 }
 
