@@ -648,6 +648,7 @@ var MATCHES=[
 // ===== TODAY MATCHES (auto-updated by ESPN) =====
 var TODAY_MATCHES=[];
 var ALL_MATCHES=[];
+var WC_ESPN=[];  // WC 2026 live data from ESPN fifa.world
 var currentDate='12/06';
 var currentLeague='World Cup 2026';
 var liveTimer=null,countdownTimer=null,nextRefreshAt=null,isRefreshing=false;
@@ -820,14 +821,66 @@ function selectDate(d){
   if(lt&&!lt.classList.contains('act'))showTab('lich');
 }
 
-// ===== ESPN DATA LOOKUP by team names =====
+// ===== ESPN DATA LOOKUP by team names (searches WC_ESPN first) =====
 function getESPNData(name1, name2){
-  for(var i=0;i<TODAY_MATCHES.length;i++){
-    var em=TODAY_MATCHES[i];
-    var en1=parseTeam(em.d1).name,en2=parseTeam(em.d2).name;
-    if((en1===name1&&en2===name2)||(en1===name2&&en2===name1))return em;
+  var pools=[WC_ESPN,TODAY_MATCHES];
+  for(var p=0;p<pools.length;p++){
+    var pool=pools[p];
+    for(var i=0;i<pool.length;i++){
+      var em=pool[i];
+      var en1=parseTeam(em.d1).name,en2=parseTeam(em.d2).name;
+      if((en1===name1&&en2===name2)||(en1===name2&&en2===name1))return em;
+    }
   }
   return null;
+}
+
+// ===== WC 2026 ESPN FETCH =====
+function fetchWC2026(){
+  var now=new Date();
+  var dates=[];
+  // Fetch today and yesterday (VN is UTC+7, so an early-morning VN match may be previous UTC day)
+  for(var d=-1;d<=1;d++){
+    var dt=new Date(now.getTime()+d*86400000);
+    var s=dt.getUTCFullYear()+String(dt.getUTCMonth()+1).padStart(2,'0')+String(dt.getUTCDate()).padStart(2,'0');
+    dates.push(s);
+  }
+  var fetched=0,all=[];
+  dates.forEach(function(dateStr){
+    fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates='+dateStr)
+      .then(function(r){return r.json();})
+      .then(function(data){
+        (data.events||[]).forEach(function(ev){
+          try{
+            var comp=ev.competitions[0],comps=comp.competitors||[];
+            var home=comps.filter(function(c){return c.homeAway==='home';})[0]||comps[0];
+            var away=comps.filter(function(c){return c.homeAway==='away';})[0]||comps[1];
+            if(!home||!away)return;
+            var st=comp.status.type;
+            var status=st.completed?'done':(st.name==='STATUS_IN_PROGRESS'?'live':'upcoming');
+            var score=(status!=='upcoming')?(home.score||'0')+' - '+(away.score||'0'):null;
+            var clock='';try{clock=comp.status.displayClock||'';}catch(e){}
+            all.push({
+              id:'wc_'+ev.id,
+              d1:'🏆 '+home.team.displayName,
+              d2:'🏆 '+away.team.displayName,
+              score:score,status:status,clock:clock
+            });
+          }catch(e){}
+        });
+      })
+      .catch(function(){})
+      .finally(function(){
+        fetched++;
+        if(fetched>=dates.length&&all.length>0){
+          WC_ESPN=all;
+          // Refresh visible UI
+          var lt=document.getElementById('tab-lich');
+          if(lt&&lt.classList.contains('act'))renderLich();
+          renderGroups();
+        }
+      });
+  });
 }
 
 // ===== RENDER LICH (WC 2026 only, by date) =====
@@ -1271,6 +1324,7 @@ ALL_MATCHES=MATCHES.filter(function(m){return !isFake(m);});
 currentDate='12/06';currentLeague='World Cup 2026';
 buildFeaturedCards();
 setTimeout(function(){fetchBD24H();},100);
+setTimeout(function(){fetchWC2026();},200);
 addDragScroll('liveCards');
 addDragScroll('featuredCards');
 addDragScroll('dateNav');
@@ -1278,6 +1332,7 @@ buildDateNav();
 renderLich();
 renderGroups();
 setInterval(function(){fetchBD24H();},30000);
+setInterval(function(){fetchWC2026();},30000);
 
 
 // ===== BANNER BUTTON COLOR FLASH =====
