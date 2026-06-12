@@ -1193,6 +1193,7 @@ function showGroupDetail(k){
     var status=espn?espn.status:(m.status||'upcoming');
     var score=espn?espn.score:m.score;
     var isLive=status==='live',isDone=status==='done',hasScore=!!score;
+    var matchGa=(t1.name+'_vs_'+t2.name).toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,40);
     var actBtn=isLive
       ?'<a href="https://socolive.tv/" target="_blank" data-ga="btn_match_live_'+matchGa+'" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
         +'<img src="image/socolive-logo-2025.webp" style="height:26px;width:auto;object-fit:contain;">'
