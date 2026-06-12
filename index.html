@@ -9,6 +9,7 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-28RWPRGNF1');
+  gtag('config', 'G-EF8L28BDQ4');
 </script>
 <link rel="icon" type="image/x-icon" href="image/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="image/favicon-32.png">
@@ -1380,10 +1381,11 @@ function fetchBD24H(){
       html += '<div style="padding:10px 12px 12px;">';
       html += '<div style="font-size:10px;color:#00A651;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Bình luận viên</div>';
       html += '<div style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:10px;">'+b.name+'</div>';
+      var blvSlug=(b.name||'blv').toLowerCase().replace(/[^a-z0-9]+/g,'_');
       html += '<div style="display:flex;gap:6px;">';
-      html += '<a href="'+(b.nhom||'#')+'" target="_blank" data-ga="btn_blv_nhom" style="flex:1;display:flex;align-items:center;justify-content:center;background:#1844C8;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;">Nhóm</a>';
-      html += '<a href="'+(b.tele||'#')+'" target="_blank" data-ga="btn_blv_tele" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0088cc;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;"><img src="image/BLV/tele.png" style="height:14px;"> Tele</a>';
-      html += '<a href="'+(b.zalo||'#')+'" target="_blank" data-ga="btn_blv_zalo" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0068FF;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;"><img src="image/BLV/zalo.png" style="height:14px;"> Zalo</a>';
+      html += '<a href="'+(b.nhom||'#')+'" target="_blank" data-ga="blv_nhom_'+blvSlug+'" style="flex:1;display:flex;align-items:center;justify-content:center;background:#1844C8;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;">Nhóm</a>';
+      html += '<a href="'+(b.tele||'#')+'" target="_blank" data-ga="blv_tele_'+blvSlug+'" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0088cc;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;"><img src="image/BLV/tele.png" style="height:14px;"> Tele</a>';
+      html += '<a href="'+(b.zalo||'#')+'" target="_blank" data-ga="blv_zalo_'+blvSlug+'" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#0068FF;color:#fff;padding:7px 4px;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700;"><img src="image/BLV/zalo.png" style="height:14px;"> Zalo</a>';
       html += '</div></div></div>';
     });
     el.innerHTML = html;
