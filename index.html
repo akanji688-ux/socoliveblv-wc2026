@@ -521,9 +521,9 @@ footer{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-top:2px solid 
     <span style="font-size:10px;font-weight:800;background:#CC0000;color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:1px;">SOCOLIVE BLV</span>
   </div>
   <div style="position:relative;">
-    <button id="blvPrev" onclick="blvNav(-1)" style="position:absolute;left:-14px;top:50%;transform:translateY(-50%);z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">&#8249;</button>
+    <button id="blvPrev" onclick="blvNav(-1)" data-ga="blv_nav_prev" style="position:absolute;left:-14px;top:50%;transform:translateY(-50%);z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">&#8249;</button>
     <div id="blvCards" style="display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;flex-wrap:nowrap;width:100%;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;"></div>
-    <button id="blvNext" onclick="blvNav(1)" style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">&#8250;</button>
+    <button id="blvNext" onclick="blvNav(1)" data-ga="blv_nav_next" style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">&#8250;</button>
   </div>
 </div>
 
@@ -1065,6 +1065,7 @@ function buildFeaturedCards(){
       :(isDone?'<div class="fc-status-badge done">KẾT THÚC</div>'
       :'<div class="fc-status-badge soon">📅 '+m.d+' · '+m.t+'</div>');
     var scCls=isLive?'fc-score live-col':(isDone?'fc-score done-col':'fc-score soon-col');
+    var matchGa=(t1.name+'_vs_'+t2.name).toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,40);
     var actBtn=isLive
       ?'<a href="https://antlive210.com/" target="_blank" class="fc-watch-btn pulse" data-ga="btn_noibat_truc_tiep"><span class="btn-ping"></span>XEM TRỰC TIẾP</a>'
       :(isDone
@@ -1193,12 +1194,12 @@ function showGroupDetail(k){
     var score=espn?espn.score:m.score;
     var isLive=status==='live',isDone=status==='done',hasScore=!!score;
     var actBtn=isLive
-      ?'<a href="https://socolive.tv/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
+      ?'<a href="https://socolive.tv/" target="_blank" data-ga="'+'btn_match_live_'+matchGa+''" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
         +'<img src="image/socolive-logo-2025.webp" style="height:26px;width:auto;object-fit:contain;">'
         +'<span style="font-size:11px;font-weight:800;color:#FFD700;white-space:nowrap;">▶ Xem TT</span></a>'
       :(hasScore
         ?'<span style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;color:#fff;background:rgba(255,255,255,.08);padding:4px 12px;border-radius:5px;letter-spacing:2px;">'+score+'</span>'
-        :'<a href="https://socolive.tv/" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
+        :'<a href="https://socolive.tv/" target="_blank" data-ga="'+'btn_match_xem_'+matchGa+''" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
           +'<img src="image/socolive-logo-2025.webp" style="height:26px;width:auto;object-fit:contain;">'
           +'<span style="font-size:11px;font-weight:800;color:#FFD700;white-space:nowrap;">▶ Xem TT</span></a>');
     var c1=makeCrest(t1.name,t1.flag,'sm'),c2=makeCrest(t2.name,t2.flag,'sm');
@@ -1491,7 +1492,7 @@ setInterval(function(){fetchWC2026();},30000);
 })();
 // ===== GA4 =====
 document.addEventListener('click', function(e){
-  var el = e.target.closest('a[data-ga]');
+  var el = e.target.closest('[data-ga]');
   if(!el) el = e.target.closest('a[href*="socolive"]');
   if(el && typeof gtag === 'function'){
     var gaName = el.getAttribute('data-ga') || 'btn_socolive_khac';
