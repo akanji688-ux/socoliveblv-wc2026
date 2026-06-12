@@ -1194,12 +1194,12 @@ function showGroupDetail(k){
     var score=espn?espn.score:m.score;
     var isLive=status==='live',isDone=status==='done',hasScore=!!score;
     var actBtn=isLive
-      ?'<a href="https://socolive.tv/" target="_blank" data-ga="'+'btn_match_live_'+matchGa+''" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
+      ?'<a href="https://socolive.tv/" target="_blank" data-ga="btn_match_live_'+matchGa+'" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
         +'<img src="image/socolive-logo-2025.webp" style="height:26px;width:auto;object-fit:contain;">'
         +'<span style="font-size:11px;font-weight:800;color:#FFD700;white-space:nowrap;">▶ Xem TT</span></a>'
       :(hasScore
         ?'<span style="font-family:Oswald,sans-serif;font-size:16px;font-weight:700;color:#fff;background:rgba(255,255,255,.08);padding:4px 12px;border-radius:5px;letter-spacing:2px;">'+score+'</span>'
-        :'<a href="https://socolive.tv/" target="_blank" data-ga="'+'btn_match_xem_'+matchGa+''" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
+        :'<a href="https://socolive.tv/" target="_blank" data-ga="btn_match_xem_'+matchGa+'" style="display:inline-flex;align-items:center;gap:5px;background:#CC0000;border:1px solid #FFD700;border-radius:6px;padding:4px 8px;text-decoration:none;">'
           +'<img src="image/socolive-logo-2025.webp" style="height:26px;width:auto;object-fit:contain;">'
           +'<span style="font-size:11px;font-weight:800;color:#FFD700;white-space:nowrap;">▶ Xem TT</span></a>');
     var c1=makeCrest(t1.name,t1.flag,'sm'),c2=makeCrest(t2.name,t2.flag,'sm');
