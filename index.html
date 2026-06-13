@@ -1024,17 +1024,28 @@ function buildFeaturedCards(){
     return Object.assign({},m,{status:espn.status,score:espn.score,clock:espn.clock});
   }
 
-  // LIVE first, then upcoming — NEVER done
-  var live    = ALL_MATCHES.filter(function(m){return m.status==='live'&&isRecent(m)&&isWC(m);});
-  var upcoming= ALL_MATCHES.filter(function(m){return m.status==='upcoming'&&isRecent(m)&&isWC(m);});
-  // WC static matches enriched, exclude done
+  // LIVE first, then done-today (with score), then upcoming
+  // Enrich ALL_MATCHES with ESPN before filtering status
+  var live = ALL_MATCHES.filter(function(m){
+    var em=enrichWC(m); return em.status==='live'&&isRecent(m)&&isWC(m);
+  }).map(enrichWC);
+  var upcoming = ALL_MATCHES.filter(function(m){
+    var em=enrichWC(m); return em.status==='upcoming'&&isRecent(m)&&isWC(m);
+  }).map(enrichWC);
+  // Done matches from today — show with final score
+  var done_today = MATCHES.filter(function(m){
+    if(isFake(m))return false;
+    var em=enrichWC(m);
+    return em.status==='done'&&(m.d===todayS||m.d===tmrS);
+  }).map(enrichWC);
+  // Future upcoming WC matches
   var wc = MATCHES.filter(function(m){
     if(isFake(m))return false;
     var em=enrichWC(m);
-    return em.status!=='done';
+    return em.status==='upcoming';
   }).map(enrichWC);
 
-  // Pick 4 cards — no done, no duplicates
+  // Pick 4 cards — no duplicates
   var used={};
   function pick(arr){
     for(var i=0;i<arr.length;i++){
@@ -1042,10 +1053,10 @@ function buildFeaturedCards(){
     }return null;
   }
 
-  var c1=pick(live)||pick(upcoming)||pick(wc);
-  var c2=pick(live)||pick(upcoming)||pick(wc);
-  var c3=pick(live)||pick(upcoming)||pick(wc);
-  var c4=pick(live)||pick(upcoming)||pick(wc);
+  var c1=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
+  var c2=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
+  var c3=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
+  var c4=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
 
   function rc(m){
     if(!m)return '<div class="fc-card is-soon" style="opacity:.3;min-height:200px;display:flex;align-items:center;justify-content:center;"><span style="color:#555;">Không có trận</span></div>';
