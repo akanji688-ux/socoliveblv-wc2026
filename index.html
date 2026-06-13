@@ -1069,10 +1069,10 @@ function buildFeaturedCards(){
     }return null;
   }
 
-  var c1=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
-  var c2=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
-  var c3=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
-  var c4=pick(live)||pick(done_today)||pick(upcoming)||pick(wc);
+  var c1=pick(live)||pick(upcoming)||pick(wc);
+  var c2=pick(live)||pick(upcoming)||pick(wc);
+  var c3=pick(live)||pick(upcoming)||pick(wc);
+  var c4=pick(live)||pick(upcoming)||pick(wc);
 
   function rc(m){
     if(!m)return '<div class="fc-card is-soon" style="opacity:.3;min-height:200px;display:flex;align-items:center;justify-content:center;"><span style="color:#555;">Không có trận</span></div>';
