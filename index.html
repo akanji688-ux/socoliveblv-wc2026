@@ -813,6 +813,14 @@ function buildDateNav(){
   var DAY=['CN','T2','T3','T4','T5','T6','T7'];
   var html='';
   dates.forEach(function(d){
+    // Ẩn ngày nếu tất cả trận đã kết thúc
+    var dayMs=wcOnly.filter(function(m){return m.d===d;});
+    var allDone=dayMs.length>0&&dayMs.every(function(m){
+      var t1=parseTeam(m.d1),t2=parseTeam(m.d2);
+      var espn=getESPNData(t1.name,t2.name);
+      return espn&&espn.status==='done';
+    });
+    if(allDone)return;
     var p=d.split('/'),dt=new Date(2026,+p[1]-1,+p[0]);
     var isAct=(d===currentDate);
     html+='<div class="dn-btn'+(isAct?' act':'')+'" onclick="selectDate(\''+d+'\')">'
