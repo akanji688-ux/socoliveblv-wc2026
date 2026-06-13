@@ -873,7 +873,7 @@ function fetchWC2026(){
   var now=new Date();
   var dates=[];
   // Fetch today and yesterday (VN is UTC+7, so an early-morning VN match may be previous UTC day)
-  for(var d=-1;d<=1;d++){
+  for(var d=-2;d<=1;d++){
     var dt=new Date(now.getTime()+d*86400000);
     var s=dt.getUTCFullYear()+String(dt.getUTCMonth()+1).padStart(2,'0')+String(dt.getUTCDate()).padStart(2,'0');
     dates.push(s);
@@ -938,6 +938,7 @@ function renderLich(){
     // Overlay ESPN live data
     var espn=getESPNData(t1.name,t2.name);
     var status=espn?espn.status:(m.status||'upcoming');
+    if(status==='done')return; // ẩn trận đã kết thúc
     var sc=(espn&&espn.score)?espn.score:(m.score||'vs');
     var clockTxt=espn?(espn.clock||''):(m.clock||'');
     var scCls=(status==='live')?'score live-s':'score';
